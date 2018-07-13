@@ -1,0 +1,99 @@
+
+body {
+	font-family: monospace;
+}
+
+textarea {
+	border: none;
+	resize: none;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+	padding: 10px;
+	background-color: #fff;
+}
+
+#header {
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: calc(100% - 300px);
+	height: 150px;
+	padding: 10px;
+	box-sizing: border-box;
+}
+
+#header textarea {
+	height: 100%;
+	width: calc(50% - 5px);
+}
+
+#source {
+	margin-right: 10px;
+}
+
+#resultsContainer {
+	position: absolute;
+	left: 0px;
+	top: 150px;
+	bottom: 80px;
+	width: calc(100% - 300px);
+	box-sizing: border-box;
+	padding: 0px 10px;
+}
+
+#resultsContainer #results {
+	border: 1px solid #ccc;
+	padding: 10px;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+#sidebar {
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	width: 300px;
+	height: 100%;
+	padding: 11px 10px 10px 0px;
+	box-sizing: border-box;
+}
+
+#valueSelection {
+	height: 130px;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+}
+
+#values {
+	height: calc(100% - 284px);
+	border: 1px solid #ccc;	
+	margin-top: 9px;
+}
+
+#controls {
+	height: 130px;
+	position: absolute;
+	bottom: 9px;
+	right: 10px;
+	left: 0px;
+	border: 1px solid #ccc;
+}
+
+#footer {
+	position: absolute;
+	left: 0px;
+	bottom: 0px;
+	width: calc(100% - 300px);
+	height: 80px;
+	box-sizing: border-box;
+	padding: 10px;
+}
+
+#footer #query {
+	height: 100%;
+	width: 100%;
+}
+
+.token {
+	cursor: pointer;
+}

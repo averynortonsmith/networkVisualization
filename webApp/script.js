@@ -1,30 +1,54 @@
-// Bug Awards (tm)
-// Promises masking errors downstream [1 hour] [https://www.reddit.com/r/javascript/comments/4bj6sm/am_i_wrong_to_be_annoyed_with_promise_error/] 
 
 const elem = React.createElement
+
+function processData(activations, text){
+    let sentences = [];
+    let neurons = [];
+    let layers = [];
+    let words = [];
+    console.log(activations)
+    console.log(text)
+    for (let sen = 0; sen < activations.length; sen++){
+        for (let word = 0; word < activations[sen].length; word++){
+            sentences.push(<Token word={text[sen][word]} />);
+            for (let layer = 0; layer < activations[sen][word].length; layer++){
+                for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
+                    // let actVal = activations[sen][word][layer][ind];
+                    // activations.push({actVal, token, sen, word, layer, ind});
+                }
+            }
+        }
+    }
+    
+    return {neurons, layers, sentences, words}
+}
 
 class Container extends React.Component {
     constructor(props) {
         super(props);
-        this.handleChange = this.handleChange.bind(this);
-        this.state = {activations: [], query: "activations"};
+        this.state = {results: [], query: "sentences", activations: [], text: [], pred: ""};
     }
 
-    handleChange(e) {
-        this.setState({query: e.target.value});
-      }
-
     render() {
-        if (this.state.activations.length){
-            let actValues = [];
-            var activations = this.state.activations;
+        if (this.state.activations.length) {
+            let {neurons, layers, sentences, words} = processData(this.state.activations, this.state.text);
             let results = eval(this.state.query);
-            let resultsList = results instanceof Array ? results : [results]
-            for (let props of resultsList) {
-                actValues.push(elem(Activation, props));
+            let sourceLines = [];
+            for (let sentence of this.state.text) {
+                sourceLines.push(sentence.join(" "));
             }
-            let search = <input onChange={this.handleChange} />;
-            return elem("div", null, search, actValues);  
+            let source = sourceLines.join("\n");
+
+            if (results) {
+                return (
+                    <div id="container">
+                        <Header text={sourceLines} pred={this.state.pred} />
+                        <Results results={results} />
+                        <SideBar />
+                        <Footer />
+                    </div>
+                );  
+            }
         }
         return null;        
     }
@@ -32,15 +56,86 @@ class Container extends React.Component {
     componentDidMount() {
         let fetches = [];
         fetches.push(fetch("../activations.json").then(response => response.json()));
-        fetches.push(fetch("../tokens.json").then(response => response.json()));
-        fetches.push(fetch("../pred.txt"));
-        Promise.all(fetches).then(([actValues, tokens, pred]) => 
-            this.setState({activations: process(actValues, tokens), pred: pred})
+        fetches.push(fetch("../text.json").then(response => response.json()));
+        fetches.push(fetch("../pred.txt").then(response => response.text()));
+        Promise.all(fetches).then(([activations, text, pred]) => 
+            this.setState({activations, text, pred})
         ).catch(function(e) {
             console.log(e);
         });
     }
 }
+
+class Results extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div id="resultsContainer">
+                <div id="results">{this.props.results}</div>
+            </div>
+        );        
+    }
+}
+
+class SideBar extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div id="sidebar">
+                <div id="valueSelection"></div>
+                <div id="values"></div>
+                <div id="controls"></div>
+            </div>
+        );        
+    }
+}
+
+class Header extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div id="header">
+                <textarea id="source" defaultValue={this.props.text}></textarea>
+                <textarea id="prediction" value={this.props.pred}></textarea>
+            </div>
+        );        
+    }
+}
+
+class Footer extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            <div id="footer">
+                <textarea id="query"></textarea>
+            </div>
+        );
+    }
+}
+
+class Token extends React.Component {
+    constructor(props) {
+        super(props);
+        this.props = props;
+    }
+
+    render() {
+        return (<div className="token">{this.props.word}</div>);
+    }
+}
+
 
 class Activation extends React.Component {
     constructor(props) {
@@ -60,17 +155,26 @@ ReactDOM.render(
 );
 
 function process(actValues, tokens){
-    let activations = [];
-    for (let sentence = 0; sentence < actValues.length; sentence++){
-        for (let word = 0; word < actValues[sentence].length; word++){
-            let token = tokens[sentence][word]
-            for (let layer = 0; layer < actValues[sentence][word].length; layer++){
-                for (let ind = 0; ind < actValues[sentence][word][layer].length; ind++){
-                    let actVal = actValues[sentence][word][layer][ind];
-                    activations.push({actVal, token, sentence, word, layer, ind});
-                }
-            }
-        }
-    }
+    
     return activations;
 }
+
+// -----
+// input
+// -----
+// translation
+// -----
+// neurons   : top words / phrases?
+// layers    : none 
+// sentences : 
+// tokens    :
+// words     :
+// value     : 
+
+// can display:
+//   list of sentences
+//   list of words
+//   list of words for neurons
+//   list of tokens
+//   list of tokens for neurons
+//   cannot display tokens without sentences

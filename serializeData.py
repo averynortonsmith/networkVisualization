@@ -14,7 +14,7 @@ with open("activations.json", "w") as file:
     file.write(json.dumps(listify(activations)))
 
 with open("text.txt", "r") as file:
-	tokens = [sentence.split(" ") for sentence in file.read().strip().split("\n")]
+	sentences = [sentence.split(" ") for sentence in file.read().strip().split("\n")]
 
-with open("tokens.json", "w") as file:
-    file.write(json.dumps(listify(tokens)))
+with open("text.json", "w") as file:
+    file.write(json.dumps(listify(sentences)))
