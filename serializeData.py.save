@@ -1,0 +1,12 @@
+import torch
+
+# source: abau
+def listify(x):
+    if type(x) == torch.Tensor:
+        return x.tolist()
+    elif type(x) == list or type(x) == tuple:
+        return [listify(y) for y in x]
+    else:
+	return x
+
+activations = torch.load("tmp.txtjson.dumps(listify(activations)) 
