@@ -25,7 +25,8 @@ function processData(activations, text){
             for (let layer = 0; layer < activations[sen][word].length; layer++){
                 for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
                     let actVal = activations[sen][word][layer][ind];
-                    let activation = <Activation actVal={actVal} />;
+                    let actKey = [sen, word, layer, ind];
+                    let activation = <Activation actVal={actVal} key={actKey}/>;
                     tokenActivations.push(activation);
                 }
             }
@@ -207,7 +208,8 @@ class Activation extends React.Component {
     }
 
     render() {
-        let style = {backgroundColor: `rgba(255, 0, 0, ${this.props.actVal})`}
+        let color = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+        let style = {backgroundColor: color + Math.abs(this.props.actVal) + ")"}
         return <div className="activation" style={style}>{this.props.actVal.toFixed(3)}</div>;
     }
 }
