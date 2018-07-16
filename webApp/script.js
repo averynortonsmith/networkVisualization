@@ -1,4 +1,4 @@
-function reverseAll(sentences) {
+function reversedAll(sentences) {
     let result = [];
     for (let sentence of sentences) {
         result.push([].concat(sentence).reverse());
@@ -6,7 +6,7 @@ function reverseAll(sentences) {
     return result;
 }
 
-function reverse(sentence) {
+function reversed(sentence) {
     return [].concat(sentence).reverse();
 }
 
@@ -21,14 +21,20 @@ function processData(activations, text){
         let sentence = [];
         for (let word = 0; word < activations[sen].length; word++){
             let key = [sen, word];
-            let token = <Token word={text[sen][word]} key={key}/>;
-            sentence.push(token);
+            let tokenActivations = [];
             for (let layer = 0; layer < activations[sen][word].length; layer++){
                 for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
-                    // let actVal = activations[sen][word][layer][ind];
-                    // activations.push({actVal, token, sen, word, layer, ind});
+                    let actVal = activations[sen][word][layer][ind];
+                    let activation = <Activation actVal={actVal} />;
+                    tokenActivations.push(activation);
                 }
             }
+            let token = <Token 
+                       word={text[sen][word]} 
+                activations={tokenActivations}
+                        key={key}
+            />;
+            sentence.push(token);
         }
         sentences.push(sentence);
     }
@@ -105,13 +111,13 @@ class Results extends React.Component {
     render() {
         let [errName, errMessage] = this.props.errorMessage.split("\n");
         return (
-            <div id="resultsContainer">
+            <div id="resultsContainer" className={this.props.errorMessage ? "error" : ""}>
                 <div id="results">
                     {this.props.results}
-                    <div id="errorMessage" className={this.props.errorMessage ? "error" : ""}>
-                        <div>{errName}</div>
-                        <div>{errMessage}</div>
-                    </div>
+                </div>
+                <div id="errorMessage">
+                    <div>{errName}</div>
+                    <div>{errMessage}</div>
                 </div>
             </div>
         );        
@@ -186,7 +192,10 @@ class Token extends React.Component {
     }
 
     render() {
-        return (<div className="token">{this.props.word}</div>);
+        return (<div className="token">
+                    <div className="type">{this.props.word}</div>
+                    {this.props.activations}
+                </div>);
     }
 }
 
@@ -199,7 +208,7 @@ class Activation extends React.Component {
 
     render() {
         let style = {backgroundColor: `rgba(255, 0, 0, ${this.props.actVal})`}
-        return <div style={style}>{JSON.stringify(this.props)}</div>;
+        return <div className="activation" style={style}>{this.props.actVal.toFixed(3)}</div>;
     }
 }
 
