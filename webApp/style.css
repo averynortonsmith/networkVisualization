@@ -46,6 +46,27 @@ textarea {
 	padding: 10px;
 	height: 100%;
 	box-sizing: border-box;
+	position: relative;
+}
+
+#errorMessage {
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	padding: 20px;
+	background-color: rgba(255, 0, 0, .6);
+	color: #fff;
+	font-weight: bold;
+	box-sizing: border-box;
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 100ms linear;
+}
+
+#errorMessage.error {
+	visibility: visible;
+	opacity: 1;
 }
 
 #sidebar {
@@ -92,8 +113,17 @@ textarea {
 #footer #query {
 	height: 100%;
 	width: 100%;
+	transition: border-color 200ms linear;
+}
+
+#query.error {
+	border-color: #f55;
 }
 
 .token {
 	cursor: pointer;
+	display: inline-block;
+	border: 1px solid #eee;
+	padding: 2px;
+	margin: 2px;
 }

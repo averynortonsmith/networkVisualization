@@ -1,16 +1,28 @@
+function reverseAll(sentences) {
+    let result = [];
+    for (let sentence of sentences) {
+        result.push([].concat(sentence).reverse());
+    }
+    return result;
+}
 
-const elem = React.createElement
+function reverse(sentence) {
+    return [].concat(sentence).reverse();
+}
 
 function processData(activations, text){
+
     let sentences = [];
     let neurons = [];
     let layers = [];
-    let words = [];
-    console.log(activations)
-    console.log(text)
+    let words = {};
+
     for (let sen = 0; sen < activations.length; sen++){
+        let sentence = [];
         for (let word = 0; word < activations[sen].length; word++){
-            sentences.push(<Token word={text[sen][word]} />);
+            let key = [sen, word];
+            let token = <Token word={text[sen][word]} key={key}/>;
+            sentence.push(token);
             for (let layer = 0; layer < activations[sen][word].length; layer++){
                 for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
                     // let actVal = activations[sen][word][layer][ind];
@@ -18,6 +30,7 @@ function processData(activations, text){
                 }
             }
         }
+        sentences.push(sentence);
     }
     
     return {neurons, layers, sentences, words}
@@ -26,29 +39,45 @@ function processData(activations, text){
 class Container extends React.Component {
     constructor(props) {
         super(props);
-        this.state = {results: [], query: "sentences", activations: [], text: [], pred: ""};
+        this.handleQueryChange = this.handleQueryChange.bind(this);
+        this.state = {
+            results: [], 
+            query: "sentences", 
+            errorMessage: "",
+            activations: [], 
+            text: [], 
+            pred: ""
+        };
+    }
+
+    handleQueryChange(query) {
+
+        this.setState({query});
+
+        let {neurons, layers, sentences, words} 
+            = processData(this.state.activations, this.state.text);
+
+        try {
+            this.setState({results: eval(query)});
+            this.setState({errorMessage: ""});
+        }
+        catch (err) {
+            let errorMessage = err.name + "\n" + err.message;
+            this.setState({errorMessage: errorMessage});
+        }
     }
 
     render() {
-        if (this.state.activations.length) {
-            let {neurons, layers, sentences, words} = processData(this.state.activations, this.state.text);
-            let results = eval(this.state.query);
-            let sourceLines = [];
-            for (let sentence of this.state.text) {
-                sourceLines.push(sentence.join(" "));
-            }
-            let source = sourceLines.join("\n");
-
-            if (results) {
-                return (
-                    <div id="container">
-                        <Header text={sourceLines} pred={this.state.pred} />
-                        <Results results={results} />
-                        <SideBar />
-                        <Footer />
-                    </div>
-                );  
-            }
+        console.log("render " + this.state.query)
+        if (this.state.activations.length) {           
+            return (
+                <div id="container">
+                    <Header sentences={this.state.text} pred={this.state.pred} />
+                    <Results results={this.state.results} errorMessage={this.state.errorMessage} />
+                    <SideBar />
+                    <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
+                </div>
+            );  
         }
         return null;        
     }
@@ -58,8 +87,10 @@ class Container extends React.Component {
         fetches.push(fetch("../activations.json").then(response => response.json()));
         fetches.push(fetch("../text.json").then(response => response.json()));
         fetches.push(fetch("../pred.txt").then(response => response.text()));
-        Promise.all(fetches).then(([activations, text, pred]) => 
-            this.setState({activations, text, pred})
+        Promise.all(fetches).then(function([activations, text, pred]) {
+            this.setState({activations, text, pred});
+            this.handleQueryChange(this.state.query);
+        }.bind(this)
         ).catch(function(e) {
             console.log(e);
         });
@@ -72,9 +103,16 @@ class Results extends React.Component {
     }
 
     render() {
+        let [errName, errMessage] = this.props.errorMessage.split("\n");
         return (
             <div id="resultsContainer">
-                <div id="results">{this.props.results}</div>
+                <div id="results">
+                    {this.props.results}
+                    <div id="errorMessage" className={this.props.errorMessage ? "error" : ""}>
+                        <div>{errName}</div>
+                        <div>{errMessage}</div>
+                    </div>
+                </div>
             </div>
         );        
     }
@@ -102,9 +140,15 @@ class Header extends React.Component {
     }
 
     render() {
+        let sourceLines = [];
+        for (let sentence of this.props.sentences) {
+            sourceLines.push(sentence.join(" "));
+        }
+        let text = sourceLines.join("\n");
+
         return (
             <div id="header">
-                <textarea id="source" defaultValue={this.props.text}></textarea>
+                <textarea id="source" defaultValue={text}></textarea>
                 <textarea id="prediction" value={this.props.pred}></textarea>
             </div>
         );        
@@ -114,12 +158,22 @@ class Header extends React.Component {
 class Footer extends React.Component {
     constructor(props) {
         super(props);
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.props.onChange(e.target.value);
     }
 
     render() {
         return (
             <div id="footer">
-                <textarea id="query"></textarea>
+                <textarea 
+                          id="query" 
+                       value={this.props.value}
+                    onChange={this.handleChange}  
+                   className={this.props.errorMessage ? "error" : ""} >
+                </textarea>
             </div>
         );
     }
@@ -150,7 +204,7 @@ class Activation extends React.Component {
 }
 
 ReactDOM.render(
-    elem(Container, null),
+    <Container />,
     document.getElementById('root')
 );
 
