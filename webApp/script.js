@@ -1,3 +1,7 @@
+Object.defineProperty(Array.prototype, 'take', {
+    value: function(n) { return this.slice(0, n); }
+});
+
 function reversedAll(sentences) {
     let result = [];
     for (let sentence of sentences) {
@@ -17,6 +21,8 @@ function processData(activations, text){
     let layers = [];
     let words = {};
 
+    let neuronsDict = {}
+
     for (let sen = 0; sen < activations.length; sen++){
         let sentence = [];
         for (let word = 0; word < activations[sen].length; word++){
@@ -28,6 +34,12 @@ function processData(activations, text){
                     let actKey = [sen, word, layer, ind];
                     let activation = <Activation actVal={actVal} key={actKey}/>;
                     tokenActivations.push(activation);
+
+                    if ([layer, ind] in neuronsDict == false) {
+                        neuronsDict[[layer, ind]] = []
+                    }
+
+                    neuronsDict[[layer, ind]].push(activation)
                 }
             }
             let token = <Token 
@@ -39,6 +51,11 @@ function processData(activations, text){
         }
         sentences.push(sentence);
     }
+
+    for (let position in neuronsDict) {
+        let activations = neuronsDict[position];
+        neurons.push(<Neuron position={position} activations={activations} />);
+    }
     
     return {neurons, layers, sentences, words}
 }
@@ -49,7 +66,7 @@ class Container extends React.Component {
         this.handleQueryChange = this.handleQueryChange.bind(this);
         this.state = {
             results: [], 
-            query: "sentences", 
+            query: "neurons", 
             errorMessage: "",
             activations: [], 
             text: [], 
@@ -61,21 +78,31 @@ class Container extends React.Component {
 
         this.setState({query});
 
-        let {neurons, layers, sentences, words} 
-            = processData(this.state.activations, this.state.text);
+        if (query) {
+            let {neurons, layers, sentences, words} 
+                = processData(this.state.activations, this.state.text);
 
-        try {
-            this.setState({results: eval(query)});
-            this.setState({errorMessage: ""});
+            try {
+                let result = eval(query);
+                if (result == undefined || result instanceof Function) {
+                    console.log(result)
+                    let errorMessage = "Invalid Type:\n" + typeof result;
+                    this.setState({errorMessage: errorMessage});
+                    return;
+                }
+                this.setState({results: result});
+                this.setState({errorMessage: ""});
+            }
+            catch (err) {
+                let errorMessage = err.name + ":\n" + err.message;
+                this.setState({errorMessage: errorMessage});
+            }
+            return;
         }
-        catch (err) {
-            let errorMessage = err.name + "\n" + err.message;
-            this.setState({errorMessage: errorMessage});
-        }
+        this.setState({errorMessage: ""});
     }
 
     render() {
-        console.log("render " + this.state.query)
         if (this.state.activations.length) {           
             return (
                 <div id="container">
@@ -175,7 +202,7 @@ class Footer extends React.Component {
     render() {
         return (
             <div id="footer">
-                <textarea 
+                <textarea autoFocus
                           id="query" 
                        value={this.props.value}
                     onChange={this.handleChange}  
@@ -209,8 +236,24 @@ class Activation extends React.Component {
 
     render() {
         let color = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-        let style = {backgroundColor: color + Math.abs(this.props.actVal) + ")"}
-        return <div className="activation" style={style}>{this.props.actVal.toFixed(3)}</div>;
+        let style = {backgroundColor: color + Math.abs(this.props.actVal) ** .7 + ")"}
+        let valString = this.props.actVal.toFixed(3);
+        return <div className="activation" style={style}>{valString}</div>;
+    }
+}
+
+class Neuron extends React.Component {
+    constructor(props) {
+        super(props);
+        this.props = props;
+    }
+
+    render() {
+        let activations = this.props.activations;
+        return <div className="neuron">
+                   <span>{this.props.position}</span>
+                   {activations}
+                </div>;
     }
 }
 

@@ -132,11 +132,31 @@ textarea {
 	border: 1px solid #eee;
 	padding: 2px;
 	margin: 2px;
-	text-align: center;
+}
+
+.token .type {
+	padding-left: 4px;
 }
 
 .activation {
 	text-align: right;
 	margin: 2px;
-	color: rgba(40, 40, 40, 0);
+	padding: 2px;
+	color: rgba(0, 0, 0, .2);
+}
+
+.neuron {
+	border: 1px solid #eee;
+	margin: 2px;	
+}
+
+.neuron span {
+	padding: 6px;
+	font-size: 11px;
+}
+
+.neuron .activation {
+	display: inline-block;
+	margin: 1px;
+	padding: 4px;
 }
