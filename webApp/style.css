@@ -153,10 +153,14 @@ textarea {
 .neuron span {
 	padding: 6px;
 	font-size: 11px;
+	width: 40px;
+	display: inline-block;
+	text-align: right;
 }
 
 .neuron .activation {
 	display: inline-block;
 	margin: 1px;
 	padding: 4px;
+	width: 50px;
 }
