@@ -2,6 +2,21 @@ Object.defineProperty(Array.prototype, 'take', {
     value: function(n) { return this.slice(0, n); }
 });
 
+Object.defineProperty(Array.prototype, 'average', {
+    value: function(n) {
+        let total = this.map(getValue).reduce((a, b) => a + b);
+        return <Activation actVal={total / this.length} />;
+    }
+});
+
+function getValue(activation) {
+    return activation.props.actVal;
+}
+
+function getActivations(neuron) {
+    return neuron.props.activations;
+}
+
 function reversedAll(sentences) {
     let result = [];
     for (let sentence of sentences) {
@@ -14,52 +29,6 @@ function reversed(sentence) {
     return [].concat(sentence).reverse();
 }
 
-function processData(activations, text){
-
-    let sentences = [];
-    let neurons = [];
-    let layers = [];
-    let words = {};
-
-    let neuronsDict = {}
-
-    for (let sen = 0; sen < activations.length; sen++){
-        let sentence = [];
-        for (let word = 0; word < activations[sen].length; word++){
-            let key = [sen, word];
-            let tokenActivations = [];
-            for (let layer = 0; layer < activations[sen][word].length; layer++){
-                for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
-                    let actVal = activations[sen][word][layer][ind];
-                    let actKey = [sen, word, layer, ind];
-                    let activation = <Activation actVal={actVal} key={actKey}/>;
-                    tokenActivations.push(activation);
-
-                    if ([layer, ind] in neuronsDict == false) {
-                        neuronsDict[[layer, ind]] = []
-                    }
-
-                    neuronsDict[[layer, ind]].push(activation)
-                }
-            }
-            let token = <Token 
-                       word={text[sen][word]} 
-                activations={tokenActivations}
-                        key={key}
-            />;
-            sentence.push(token);
-        }
-        sentences.push(sentence);
-    }
-
-    for (let position in neuronsDict) {
-        let activations = neuronsDict[position];
-        neurons.push(<Neuron position={position} activations={activations} />);
-    }
-    
-    return {neurons, layers, sentences, words}
-}
-
 class Container extends React.Component {
     constructor(props) {
         super(props);
@@ -69,9 +38,59 @@ class Container extends React.Component {
             query: "neurons", 
             errorMessage: "",
             activations: [], 
+            data: {},
             text: [], 
             pred: ""
         };
+    }
+
+    processData(activations, text, pred){
+
+        this.setState({activations, text, pred});
+
+        let sentences = [];
+        let neurons = [];
+        let layers = [];
+        let words = {};
+
+        let neuronsDict = {}
+
+        for (let sen = 0; sen < activations.length; sen++){
+            let sentence = [];
+            for (let word = 0; word < activations[sen].length; word++){
+                let key = [sen, word];
+                let tokenActivations = [];
+                for (let layer = 0; layer < activations[sen][word].length; layer++){
+                    for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
+                        let actVal = activations[sen][word][layer][ind];
+                        let actKey = [sen, word, layer, ind];
+                        let activation = <Activation actVal={actVal} key={actKey}/>;
+                        tokenActivations.push(activation);
+
+                        if ([layer, ind] in neuronsDict == false) {
+                            neuronsDict[[layer, ind]] = []
+                        }
+
+                        neuronsDict[[layer, ind]].push(activation)
+                    }
+                }
+                let token = <Token 
+                           word={text[sen][word]} 
+                    activations={tokenActivations}
+                            key={key}
+                />;
+                sentence.push(token);
+            }
+            sentences.push(sentence);
+        }
+
+        for (let position in neuronsDict) {
+            let activations = neuronsDict[position];
+            let neuron = <Neuron position={position} activations={activations} />;
+            neurons.push(neuron);
+        }
+        
+        this.setState({data: {neurons, layers, sentences, words}});
     }
 
     handleQueryChange(query) {
@@ -79,13 +98,11 @@ class Container extends React.Component {
         this.setState({query});
 
         if (query) {
-            let {neurons, layers, sentences, words} 
-                = processData(this.state.activations, this.state.text);
+            let {neurons, layers, sentences, words} = this.state.data;
 
             try {
                 let result = eval(query);
                 if (result == undefined || result instanceof Function) {
-                    console.log(result)
                     let errorMessage = "Invalid Type:\n" + typeof result;
                     this.setState({errorMessage: errorMessage});
                     return;
@@ -122,7 +139,7 @@ class Container extends React.Component {
         fetches.push(fetch("../text.json").then(response => response.json()));
         fetches.push(fetch("../pred.txt").then(response => response.text()));
         Promise.all(fetches).then(function([activations, text, pred]) {
-            this.setState({activations, text, pred});
+            this.processData(activations, text, pred);
             this.handleQueryChange(this.state.query);
         }.bind(this)
         ).catch(function(e) {
