@@ -101,13 +101,13 @@ class Container extends React.Component {
             let {neurons, layers, sentences, words} = this.state.data;
 
             try {
-                let result = eval(query);
-                if (result == undefined || result instanceof Function) {
-                    let errorMessage = "Invalid Type:\n" + typeof result;
+                let results = eval(query);
+                if (results == undefined || results instanceof Function) {
+                    let errorMessage = "Invalid Type:\n" + typeof results;
                     this.setState({errorMessage: errorMessage});
                     return;
                 }
-                this.setState({results: result});
+                this.setState({results: results});
                 this.setState({errorMessage: ""});
             }
             catch (err) {

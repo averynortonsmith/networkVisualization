@@ -39,6 +39,7 @@ textarea {
 	width: calc(100% - 300px);
 	box-sizing: border-box;
 	padding: 0px 10px;
+	white-space: nowrap;
 }
 
 #resultsContainer #results {
@@ -129,25 +130,28 @@ textarea {
 .token {
 	cursor: pointer;
 	display: inline-block;
-	border: 1px solid #eee;
-	padding: 2px;
-	margin: 2px;
 }
 
 .token .type {
-	padding-left: 4px;
+	padding: 2px 4px;
+	text-align: center;
+}
+
+.token .activation {
+	max-width: none;
 }
 
 .activation {
 	text-align: right;
 	margin: 2px;
-	padding: 2px;
+	padding: 6px;
 	color: rgba(0, 0, 0, .2);
+	max-width: 50px;
 }
 
 .neuron {
-	border: 1px solid #eee;
-	margin: 2px;	
+	margin: 2px;
+	overflow: visible;
 }
 
 .neuron span {
