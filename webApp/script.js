@@ -35,7 +35,7 @@ class Container extends React.Component {
         this.handleQueryChange = this.handleQueryChange.bind(this);
         this.state = {
             results: [], 
-            query: "neurons", 
+            query: "neurons.take(10)", 
             errorMessage: "",
             activations: [], 
             data: {},
@@ -86,7 +86,7 @@ class Container extends React.Component {
 
         for (let position in neuronsDict) {
             let activations = neuronsDict[position];
-            let neuron = <Neuron position={position} activations={activations} />;
+            let neuron = <Neuron position={position} activations={activations} key={position} />;
             neurons.push(neuron);
         }
         
