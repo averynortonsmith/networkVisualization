@@ -30,7 +30,7 @@ class Container extends React.Component {
         this.state = {
             results: [], 
             selection: [],
-            query: "neurons.take(10)", 
+            query: "", 
             errorMessage: "",
             data: {},
             text: [], 
@@ -231,7 +231,8 @@ class Footer extends React.Component {
                           id="query" 
                        value={this.props.value}
                     onChange={this.handleChange}  
-                   className={this.props.errorMessage ? "error" : ""} >
+                   className={this.props.errorMessage ? "error" : ""} 
+                 placeholder=">> enter query" >
                 </textarea>
             </div>
         );

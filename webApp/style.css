@@ -105,14 +105,15 @@ textarea {
 }
 
 #values {
-	height: calc(100% - 211px);
+	height: calc(100% - 210px);
 	border: 1px solid #ccc;	
 	margin-top: 9px;
 	padding: 10px;
+	box-sizing: border-box;
 }
 
 #controls {
-	height: 59px;
+	height: 58px;
 	position: absolute;
 	bottom: 9px;
 	right: 10px;

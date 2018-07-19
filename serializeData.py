@@ -35,3 +35,5 @@ with open("pred.txt", "r") as file:
 
 with open("pred.json", "w") as file:
     file.write(json.dumps(sentences))
+
+# ./getActivations.sh /data/sls/scratch/abau/model-corpus-brnn/en-es-1.pt
