@@ -1,5 +1,5 @@
 Object.defineProperty(Array.prototype, 'take', {
-    value: function(n) { return this.slice(0, n); }
+    value: function(n) { this.slice(0, n) }
 });
 
 Object.defineProperty(Array.prototype, 'average', {

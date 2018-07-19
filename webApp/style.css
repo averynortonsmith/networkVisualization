@@ -3,6 +3,8 @@ body {
 	font-family: monospace;
 }
 
+/*--------------------------------------------------------------------------------*/
+
 #header {
 	position: absolute;
 	left: 0px;
@@ -11,14 +13,6 @@ body {
 	height: 240px;
 	padding: 10px;
 	box-sizing: border-box;
-}
-
-textarea {
-	border: none;
-	resize: none;
-	border: 1px solid #ccc;
-	box-sizing: border-box;
-	padding: 10px;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -40,6 +34,14 @@ textarea {
 }
 
 /*--------------------------------------------------------------------------------*/
+
+textarea {
+	border: none;
+	resize: none;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+	padding: 10px;
+}
 
 #resultsContainer {
 	position: absolute;
@@ -145,31 +147,67 @@ textarea {
 
 /*--------------------------------------------------------------------------------*/
 
-.activation {
-	text-align: right;
-	margin: 2px;
-	padding: 6px;
-	color: rgba(0, 0, 0, .2);
-	max-width: 50px;
-}
-
-/*--------------------------------------------------------------------------------*/
-
 .sentence {
 	display: block;
 	margin-bottom: 10px;
+	cursor: pointer;
+}
+
+.sentenceName {
+	background-color: #f4f4f4;
+	color: #777;
+	padding: 6px;
+	margin: 2px;
+}
+
+.sentence .tokenContainer {
+	display: inline-block;
+}
+
+.sentence .token {
+	display: inline-block;
+	padding: 5px;
+}
+
+.sentence .itemName {
+	display: none;
 }
 
 /*--------------------------------------------------------------------------------*/
 
-.token {
-	cursor: pointer;
-	display: inline-block;
+.activation {
 	margin: 2px;
-	border: 1px solid #eee;
-	padding: 2px;
-	cursor: pointer;
 	display: inline-block;
+	cursor: pointer;
+}
+
+.actValue {
+	border: 1px solid #ccc;
+	text-align: right;
+	padding: 0px 6px;
+	height: 20px;
+	line-height: 20px;
+	color: rgba(0, 0, 0, .2);
+	width: 50px;
+	display: inline-block;
+}
+
+.actText {
+	padding: 0px 6px 0px 6px;
+	color: #aaa;
+}
+
+.activation .wordContainer {
+	display: inline-block;
+}
+
+.activation .word {
+	padding: 2px;
+	border: none;
+}
+
+.activation .itemName {
+	display: none;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -177,9 +215,12 @@ textarea {
 .neuron {
 	margin: 2px;
 	overflow: visible;
+	border: 1px solid #eee;
+	display: inline-block;
+	cursor: pointer;
 }
 
-.neuron span {
+.neuronInfo {
 	padding: 6px;
 	font-size: 11px;
 	width: 40px;
@@ -187,9 +228,33 @@ textarea {
 	text-align: right;
 }
 
-.neuron .activation {
+/*--------------------------------------------------------------------------------*/
+
+.token {
+	cursor: pointer;
+	margin: 2px;
+	border: 1px solid #eee;
+	cursor: pointer;
+	padding: 0px 6px 0px 0px;
 	display: inline-block;
-	margin: 1px;
-	padding: 4px;
-	width: 50px;
+}
+
+/*--------------------------------------------------------------------------------*/
+
+.word {
+	margin: 2px;
+	cursor: pointer;
+	border: 1px solid #eee;
+	padding: 0px 6px 0px 0px;
+	display: inline-block;
+}
+
+/*--------------------------------------------------------------------------------*/
+
+.itemName {
+	background-color: #f4f4f4;
+	color: #999;
+	padding: 6px;
+	margin: 0px 6px 0px 0px;
+	display: inline-block;
 }

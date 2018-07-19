@@ -11,7 +11,7 @@ function getSentences(textData, toggleSelect) {
             tokens.push(token);
         }
         let position = sen;
-        let sentenceElem = new SentenceValue(tokens, position);
+        let sentenceElem = new SentenceValue(tokens, position, toggleSelect);
         output.push(sentenceElem);
     }
     return output;
@@ -19,6 +19,13 @@ function getSentences(textData, toggleSelect) {
 
 function isEmpty(object) {
     return Object.keys(object).length === 0 && object.constructor === Object
+}
+
+function take(n, object) {
+    if (object instanceof Array) {
+        return object.slice(0, n);
+    }
+    return object;
 }
 
 class Container extends React.Component {
@@ -63,24 +70,17 @@ class Container extends React.Component {
                     for (let ind = 0; ind < activationsData[sen][word][layer].length; ind++){
                         let actVal = activationsData[sen][word][layer][ind];
                         let position = [sen, word, layer, ind];
-                        let activation = new ActivationValue(actVal, position);
+                        let before = textData[sen].slice(Math.max(word - 2, 0), word).map(string => new WordValue(string, toggleSelect));
+                        let after = textData[sen].slice(word + 1, word + 3).map(string => new WordValue(string, toggleSelect));
+                        let string = new WordValue(textData[sen][word], toggleSelect, true);
+                        let activation = new ActivationValue(actVal, {before, after, string}, position, toggleSelect);
                         activations.push(activation);
                     }
                 }
             }
         }
 
-        let sentencesList = activations.reduce(function(result, activation) {
-            let [sen, word, layer, ind] = activation.position;
-            if (sen >= result.length) {result.push([])}
-            if (word >= result[result.length - 1].length) {
-                let string = textData[sen][word];
-                let position = [sen, word];
-                result[result.length - 1].push(new TokenValue(string, position, toggleSelect));
-            }
-            return result;
-        }, []);
-        let sentences = sentencesList.map((tokens, index) => new SentenceValue(tokens, [index]));
+        let sentences = getSentences(textData, toggleSelect);
 
         let neuronsDict = activations.reduce(function(result, activation) {
             let [sen, word, layer, ind] = activation.position;
@@ -89,19 +89,31 @@ class Container extends React.Component {
             result[position].push(activation);
             return result;
         }, {});
-        let neurons = Object.keys(neuronsDict).map(position => new NeuronValue(neuronsDict[position], position));
+        let neurons = Object.keys(neuronsDict).map(position => new NeuronValue(neuronsDict[position], position, toggleSelect));
 
         let layers = [];
-        let words = {};
+
+        let tokens = sentences.reduce(function(result, sentence) {
+            let tokens = sentence.tokens;
+            return result.concat(tokens);
+        }, []);
+
+        let wordsDict = tokens.reduce(function(result, token) {
+            if (token.string in result == false) {
+                result[token.string] = [];
+            }
+            return result;
+        }, {});
+        let words = Object.keys(wordsDict).map(string => new WordValue(string, toggleSelect));
         
-        this.setState({data: {activations, neurons, layers, sentences, words}});
+        this.setState({data: {activations, neurons, tokens, sentences, words}});
     }
 
     handleQueryChange(query) {
         this.setState({query});
 
         if (query) {
-            let {activations, neurons, layers, sentences, words} = this.state.data;
+            let {activations, neurons, tokens, sentences, words} = this.state.data;
             let selection = this.state.selection;
 
             try {
@@ -127,7 +139,7 @@ class Container extends React.Component {
         return (
             <div id="container">
                 <Header text={this.state.text} pred={this.state.pred} />
-                <Results results={this.state.results} errorMessage={this.state.errorMessage} />
+                <Results results={take(100, this.state.results)} errorMessage={this.state.errorMessage} />
                 <SideBar selection={this.state.selection} />
                 <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
             </div>
