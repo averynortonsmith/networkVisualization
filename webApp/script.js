@@ -1,59 +1,80 @@
-Object.defineProperty(Array.prototype, 'take', {
-    value: function(n) { return this.slice(0, n); }
-});
-
-Object.defineProperty(Array.prototype, 'average', {
-    value: function(n) {
-        let total = this.map(getValue).reduce((a, b) => a + b);
-        return <Activation actVal={total / this.length} />;
-    }
-});
-
-function getValue(activation) {
-    return activation.props.actVal;
-}
-
-function getActivations(neuron) {
-    return neuron.props.activations;
-}
-
-function reversedAll(sentences) {
-    let result = [];
-    for (let sentence of sentences) {
-        result.push([].concat(sentence).reverse());
-    }
-    return result;
-}
-
-function reversed(sentence) {
-    return [].concat(sentence).reverse();
-}
 
 class Container extends React.Component {
     constructor(props) {
         super(props);
         this.handleQueryChange = this.handleQueryChange.bind(this);
+        this.toggleSelection = this.toggleSelection.bind(this);
         this.state = {
             results: [], 
+            selection: [],
+            selectedDict: {},
             query: "neurons.take(10)", 
             errorMessage: "",
             activations: [], 
             data: {},
             text: [], 
-            pred: ""
+            pred: [],
         };
     }
 
-    processData(activations, text, pred){
+    toggleSelection(selection) {
+        let [componentClass, props] = selection;
+        let keyString = JSON.stringify(componentClass.name) + " " + JSON.stringify(props);
+        if (keyString in this.state.selectedDict == false) {
+            let newEntry = {}
+            newEntry[keyString] = true;
+            this.setState({selectedDict: {...this.state.selectedDict, ...newEntry}});
+            let newElem = <div>{React.createElement(componentClass, {keyString, ...props})}</div>;
+            this.setState({selection: this.state.selection.concat([newElem])});
+        }
+        else {
+            let newEntry = {}
+            newEntry[keyString] = !this.state.selectedDict[keyString];
+            this.setState({selectedDict: {...this.state.selectedDict, ...newEntry}});
+        }
+        console.log(keyString)
+    }
+
+    processData(activations, textData, predData){
+        let text = [];
+
+        for (let sen = 0; sen < textData.length; sen++) {
+            let tokens = [];
+            let sentence = textData[sen];
+            for (let tok = 0; tok < sentence.length; tok++) {
+                let stringToken = sentence[tok];
+                let position = [sen, tok];
+                let token = new TokenValue(stringToken, position);
+                tokens.push(token);
+            }
+            let position = sen;
+            let sentenceElem = new SentenceValue(tokens, position);
+            text.push(sentenceElem);
+        }
+
+        let pred = [];
+
+        for (let sen = 0; sen < predData.length; sen++) {
+            let tokens = [];
+            let sentence = predData[sen];
+            for (let tok = 0; tok < sentence.length; tok++) {
+                let stringToken = sentence[tok];
+                let position = [sen, tok];
+                let token = new TokenValue(stringToken, position);
+                tokens.push(token);
+            }
+            let position = sen;
+            let sentenceElem = new SentenceValue(tokens, position);
+            pred.push(sentenceElem);
+        }
 
         this.setState({activations, text, pred});
 
+        let neuronsDict = {}
         let sentences = [];
         let neurons = [];
         let layers = [];
         let words = {};
-
-        let neuronsDict = {}
 
         for (let sen = 0; sen < activations.length; sen++){
             let sentence = [];
@@ -63,8 +84,8 @@ class Container extends React.Component {
                 for (let layer = 0; layer < activations[sen][word].length; layer++){
                     for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
                         let actVal = activations[sen][word][layer][ind];
-                        let actKey = [sen, word, layer, ind];
-                        let activation = <Activation actVal={actVal} key={actKey}/>;
+                        let position = [sen, word, layer, ind];
+                        let activation = new ActivationValue(actVal, position);
                         tokenActivations.push(activation);
 
                         if ([layer, ind] in neuronsDict == false) {
@@ -86,19 +107,18 @@ class Container extends React.Component {
 
         for (let position in neuronsDict) {
             let activations = neuronsDict[position];
-            let neuron = <Neuron position={position} activations={activations} key={position} />;
+            let neuron = new NeuronValue(position, activations);
             neurons.push(neuron);
         }
         
-        this.setState({data: {neurons, layers, sentences, words}});
+        this.setState({data: {neurons, neuronsDict, layers, sentences, words}});
     }
 
     handleQueryChange(query) {
-
         this.setState({query});
 
         if (query) {
-            let {neurons, layers, sentences, words} = this.state.data;
+            let {neurons, neuronsDict, layers, sentences, words} = this.state.data;
 
             try {
                 let results = eval(query);
@@ -120,12 +140,20 @@ class Container extends React.Component {
     }
 
     render() {
-        if (this.state.activations.length) {           
+        if (this.state.activations.length) {
+            let selection = [];
+            for (let item of this.state.selection) {
+                console.log(item.props.keyString)
+                console.log(this.state.selectedDict)
+                if (this.state.selectedDict[item.props.keyString]) {
+                    selection.push(item);
+                }
+            }         
             return (
                 <div id="container">
-                    <Header sentences={this.state.text} pred={this.state.pred} />
+                    <Header text={this.state.text} pred={this.state.pred} />
                     <Results results={this.state.results} errorMessage={this.state.errorMessage} />
-                    <SideBar />
+                    <SideBar selection={selection} />
                     <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
                 </div>
             );  
@@ -137,7 +165,7 @@ class Container extends React.Component {
         let fetches = [];
         fetches.push(fetch("../activations.json").then(response => response.json()));
         fetches.push(fetch("../text.json").then(response => response.json()));
-        fetches.push(fetch("../pred.txt").then(response => response.text()));
+        fetches.push(fetch("../pred.json").then(response => response.json()));
         Promise.all(fetches).then(function([activations, text, pred]) {
             this.processData(activations, text, pred);
             this.handleQueryChange(this.state.query);
@@ -147,6 +175,8 @@ class Container extends React.Component {
         });
     }
 }
+
+// --------------------------------------------------------------------------------
 
 class Results extends React.Component {
     constructor(props) {
@@ -158,7 +188,7 @@ class Results extends React.Component {
         return (
             <div id="resultsContainer" className={this.props.errorMessage ? "error" : ""}>
                 <div id="results">
-                    {this.props.results}
+                    {this.props.results.map(value => value.getComponents())}
                 </div>
                 <div id="errorMessage">
                     <div>{errName}</div>
@@ -169,6 +199,8 @@ class Results extends React.Component {
     }
 }
 
+// --------------------------------------------------------------------------------
+
 class SideBar extends React.Component {
     constructor(props) {
         super(props);
@@ -178,12 +210,14 @@ class SideBar extends React.Component {
         return (
             <div id="sidebar">
                 <div id="valueSelection"></div>
-                <div id="values"></div>
+                <div id="values">{this.props.selection}</div>
                 <div id="controls"></div>
             </div>
         );        
     }
 }
+
+// --------------------------------------------------------------------------------
 
 class Header extends React.Component {
     constructor(props) {
@@ -191,20 +225,16 @@ class Header extends React.Component {
     }
 
     render() {
-        let sourceLines = [];
-        for (let sentence of this.props.sentences) {
-            sourceLines.push(sentence.join(" "));
-        }
-        let text = sourceLines.join("\n");
-
         return (
             <div id="header">
-                <textarea id="source" defaultValue={text}></textarea>
-                <textarea id="prediction" value={this.props.pred}></textarea>
+                <div id="source">{this.props.text.map(sentence => sentence.getComponents())}</div>
+                <div id="prediction">{this.props.pred.map(sentence => sentence.getComponents())}</div>
             </div>
         );        
     }
 }
+
+// --------------------------------------------------------------------------------
 
 class Footer extends React.Component {
     constructor(props) {
@@ -230,49 +260,7 @@ class Footer extends React.Component {
     }
 }
 
-class Token extends React.Component {
-    constructor(props) {
-        super(props);
-        this.props = props;
-    }
-
-    render() {
-        return (<div className="token">
-                    <div className="type">{this.props.word}</div>
-                    {this.props.activations}
-                </div>);
-    }
-}
-
-
-class Activation extends React.Component {
-    constructor(props) {
-        super(props);
-        this.props = props;
-    }
-
-    render() {
-        let color = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-        let style = {backgroundColor: color + Math.abs(this.props.actVal) ** .7 + ")"}
-        let valString = this.props.actVal.toFixed(3);
-        return <div className="activation" style={style}>{valString}</div>;
-    }
-}
-
-class Neuron extends React.Component {
-    constructor(props) {
-        super(props);
-        this.props = props;
-    }
-
-    render() {
-        let activations = this.props.activations;
-        return <div className="neuron">
-                   <span>{this.props.position}</span>
-                   {activations}
-                </div>;
-    }
-}
+// --------------------------------------------------------------------------------
 
 ReactDOM.render(
     <Container />,
@@ -283,23 +271,3 @@ function process(actValues, tokens){
     
     return activations;
 }
-
-// -----
-// input
-// -----
-// translation
-// -----
-// neurons   : top words / phrases?
-// layers    : none 
-// sentences : 
-// tokens    :
-// words     :
-// value     : 
-
-// can display:
-//   list of sentences
-//   list of words
-//   list of words for neurons
-//   list of tokens
-//   list of tokens for neurons
-//   cannot display tokens without sentences

@@ -28,4 +28,10 @@ with open("text.txt", "r") as file:
 	sentences = [sentence.split(" ") for sentence in file.read().strip().split("\n")]
 
 with open("text.json", "w") as file:
-    file.write(json.dumps(listify(sentences)))
+    file.write(json.dumps(sentences))
+
+with open("pred.txt", "r") as file:
+    sentences = [sentence.split(" ") for sentence in file.read().strip().split("\n")]
+
+with open("pred.json", "w") as file:
+    file.write(json.dumps(sentences))

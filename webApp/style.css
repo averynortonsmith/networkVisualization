@@ -3,15 +3,6 @@ body {
 	font-family: monospace;
 }
 
-textarea {
-	border: none;
-	resize: none;
-	border: 1px solid #ccc;
-	box-sizing: border-box;
-	padding: 10px;
-	background-color: #fff;
-}
-
 #header {
 	position: absolute;
 	left: 0px;
@@ -22,14 +13,33 @@ textarea {
 	box-sizing: border-box;
 }
 
-#header textarea {
+textarea {
+	border: none;
+	resize: none;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+	padding: 10px;
+}
+
+/*--------------------------------------------------------------------------------*/
+
+#source, #prediction {
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+	padding: 10px;
 	height: 100%;
 	width: calc(50% - 5px);
+	word-wrap: break-word;
+	overflow: auto;
+	display: inline-block;
 }
+
 
 #source {
 	margin-right: 10px;
 }
+
+/*--------------------------------------------------------------------------------*/
 
 #resultsContainer {
 	position: absolute;
@@ -76,6 +86,8 @@ textarea {
 	opacity: 1;
 }
 
+/*--------------------------------------------------------------------------------*/
+
 #sidebar {
 	position: absolute;
 	right: 0px;
@@ -93,19 +105,21 @@ textarea {
 }
 
 #values {
-	height: calc(100% - 284px);
+	height: calc(100% - 211px);
 	border: 1px solid #ccc;	
 	margin-top: 9px;
 }
 
 #controls {
-	height: 130px;
+	height: 59px;
 	position: absolute;
 	bottom: 9px;
 	right: 10px;
 	left: 0px;
 	border: 1px solid #ccc;
 }
+
+/*--------------------------------------------------------------------------------*/
 
 #footer {
 	position: absolute;
@@ -126,6 +140,8 @@ textarea {
 #query.error {
 	border-color: #f55;
 }
+
+/*--------------------------------------------------------------------------------*/
 
 .token {
 	cursor: pointer;
@@ -148,6 +164,23 @@ textarea {
 	color: rgba(0, 0, 0, .2);
 	max-width: 50px;
 }
+
+/*--------------------------------------------------------------------------------*/
+
+.sentence {
+	display: block;
+	margin: 10px;
+}
+
+.sentence .token {
+	margin: 2px;
+	border: 1px solid #eee;
+	padding: 2px;
+	cursor: pointer;
+	display: inline-block;
+}
+
+/*--------------------------------------------------------------------------------*/
 
 .neuron {
 	margin: 2px;
