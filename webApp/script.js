@@ -1,124 +1,108 @@
 
+function getSentences(textData, toggleSelect) {
+    let output = [];
+    for (let sen = 0; sen < textData.length; sen++) {
+        let tokens = [];
+        let sentence = textData[sen];
+        for (let tok = 0; tok < sentence.length; tok++) {
+            let string = sentence[tok];
+            let position = [sen, tok];
+            let token = new TokenValue(string, position, toggleSelect);
+            tokens.push(token);
+        }
+        let position = sen;
+        let sentenceElem = new SentenceValue(tokens, position);
+        output.push(sentenceElem);
+    }
+    return output;
+}
+
+function isEmpty(object) {
+    return Object.keys(object).length === 0 && object.constructor === Object
+}
+
 class Container extends React.Component {
     constructor(props) {
         super(props);
         this.handleQueryChange = this.handleQueryChange.bind(this);
-        this.toggleSelection = this.toggleSelection.bind(this);
+        this.processData = this.processData.bind(this);
+        this.toggleSelect = this.toggleSelect.bind(this);
         this.state = {
             results: [], 
             selection: [],
-            selectedDict: {},
             query: "neurons.take(10)", 
             errorMessage: "",
-            activations: [], 
             data: {},
             text: [], 
             pred: [],
         };
     }
 
-    toggleSelection(selection) {
-        let [componentClass, props] = selection;
-        let keyString = JSON.stringify(componentClass.name) + " " + JSON.stringify(props);
-        if (keyString in this.state.selectedDict == false) {
-            let newEntry = {}
-            newEntry[keyString] = true;
-            this.setState({selectedDict: {...this.state.selectedDict, ...newEntry}});
-            let newElem = <div>{React.createElement(componentClass, {keyString, ...props})}</div>;
-            this.setState({selection: this.state.selection.concat([newElem])});
+    toggleSelect(value) {
+        if (this.state.selection.map(value => value.key).indexOf(value.key) > -1) {
+            this.setState({selection: this.state.selection.filter(other => other.key != value.key)});
         }
         else {
-            let newEntry = {}
-            newEntry[keyString] = !this.state.selectedDict[keyString];
-            this.setState({selectedDict: {...this.state.selectedDict, ...newEntry}});
+            this.setState({selection: this.state.selection.concat([value])});
         }
-        console.log(keyString)
     }
 
-    processData(activations, textData, predData){
-        let text = [];
+    processData(activationsData, textData, predData){
 
-        for (let sen = 0; sen < textData.length; sen++) {
-            let tokens = [];
-            let sentence = textData[sen];
-            for (let tok = 0; tok < sentence.length; tok++) {
-                let stringToken = sentence[tok];
-                let position = [sen, tok];
-                let token = new TokenValue(stringToken, position);
-                tokens.push(token);
-            }
-            let position = sen;
-            let sentenceElem = new SentenceValue(tokens, position);
-            text.push(sentenceElem);
-        }
+        let toggleSelect = this.toggleSelect;
 
-        let pred = [];
+        let text = getSentences(textData, toggleSelect);
+        let pred = getSentences(predData, toggleSelect);
 
-        for (let sen = 0; sen < predData.length; sen++) {
-            let tokens = [];
-            let sentence = predData[sen];
-            for (let tok = 0; tok < sentence.length; tok++) {
-                let stringToken = sentence[tok];
-                let position = [sen, tok];
-                let token = new TokenValue(stringToken, position);
-                tokens.push(token);
-            }
-            let position = sen;
-            let sentenceElem = new SentenceValue(tokens, position);
-            pred.push(sentenceElem);
-        }
-
-        this.setState({activations, text, pred});
-
-        let neuronsDict = {}
-        let sentences = [];
-        let neurons = [];
-        let layers = [];
-        let words = {};
-
-        for (let sen = 0; sen < activations.length; sen++){
-            let sentence = [];
-            for (let word = 0; word < activations[sen].length; word++){
-                let key = [sen, word];
-                let tokenActivations = [];
-                for (let layer = 0; layer < activations[sen][word].length; layer++){
-                    for (let ind = 0; ind < activations[sen][word][layer].length; ind++){
-                        let actVal = activations[sen][word][layer][ind];
+        this.setState({text, pred});
+        
+        let activations = [];
+        for (let sen = 0; sen < activationsData.length; sen++){
+            for (let word = 0; word < activationsData[sen].length; word++){
+                for (let layer = 0; layer < activationsData[sen][word].length; layer++){
+                    for (let ind = 0; ind < activationsData[sen][word][layer].length; ind++){
+                        let actVal = activationsData[sen][word][layer][ind];
                         let position = [sen, word, layer, ind];
                         let activation = new ActivationValue(actVal, position);
-                        tokenActivations.push(activation);
-
-                        if ([layer, ind] in neuronsDict == false) {
-                            neuronsDict[[layer, ind]] = []
-                        }
-
-                        neuronsDict[[layer, ind]].push(activation)
+                        activations.push(activation);
                     }
                 }
-                let token = <Token 
-                           word={text[sen][word]} 
-                    activations={tokenActivations}
-                            key={key}
-                />;
-                sentence.push(token);
             }
-            sentences.push(sentence);
         }
 
-        for (let position in neuronsDict) {
-            let activations = neuronsDict[position];
-            let neuron = new NeuronValue(position, activations);
-            neurons.push(neuron);
-        }
+        let sentencesList = activations.reduce(function(result, activation) {
+            let [sen, word, layer, ind] = activation.position;
+            if (sen >= result.length) {result.push([])}
+            if (word >= result[result.length - 1].length) {
+                let string = textData[sen][word];
+                let position = [sen, word];
+                result[result.length - 1].push(new TokenValue(string, position, toggleSelect));
+            }
+            return result;
+        }, []);
+        let sentences = sentencesList.map((tokens, index) => new SentenceValue(tokens, [index]));
+
+        let neuronsDict = activations.reduce(function(result, activation) {
+            let [sen, word, layer, ind] = activation.position;
+            let position = [layer, ind];
+            if (position in result == false) {result[position] = []}
+            result[position].push(activation);
+            return result;
+        }, {});
+        let neurons = Object.keys(neuronsDict).map(position => new NeuronValue(neuronsDict[position], position));
+
+        let layers = [];
+        let words = {};
         
-        this.setState({data: {neurons, neuronsDict, layers, sentences, words}});
+        this.setState({data: {activations, neurons, layers, sentences, words}});
     }
 
     handleQueryChange(query) {
         this.setState({query});
 
         if (query) {
-            let {neurons, neuronsDict, layers, sentences, words} = this.state.data;
+            let {activations, neurons, layers, sentences, words} = this.state.data;
+            let selection = this.state.selection;
 
             try {
                 let results = eval(query);
@@ -140,25 +124,14 @@ class Container extends React.Component {
     }
 
     render() {
-        if (this.state.activations.length) {
-            let selection = [];
-            for (let item of this.state.selection) {
-                console.log(item.props.keyString)
-                console.log(this.state.selectedDict)
-                if (this.state.selectedDict[item.props.keyString]) {
-                    selection.push(item);
-                }
-            }         
-            return (
-                <div id="container">
-                    <Header text={this.state.text} pred={this.state.pred} />
-                    <Results results={this.state.results} errorMessage={this.state.errorMessage} />
-                    <SideBar selection={selection} />
-                    <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
-                </div>
-            );  
-        }
-        return null;        
+        return (
+            <div id="container">
+                <Header text={this.state.text} pred={this.state.pred} />
+                <Results results={this.state.results} errorMessage={this.state.errorMessage} />
+                <SideBar selection={this.state.selection} />
+                <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
+            </div>
+        );  
     }
 
     componentDidMount() {
@@ -166,8 +139,8 @@ class Container extends React.Component {
         fetches.push(fetch("../activations.json").then(response => response.json()));
         fetches.push(fetch("../text.json").then(response => response.json()));
         fetches.push(fetch("../pred.json").then(response => response.json()));
-        Promise.all(fetches).then(function([activations, text, pred]) {
-            this.processData(activations, text, pred);
+        Promise.all(fetches).then(function([activationsData, textData, predData]) {
+            this.processData(activationsData, textData, predData);
             this.handleQueryChange(this.state.query);
         }.bind(this)
         ).catch(function(e) {
@@ -177,6 +150,9 @@ class Container extends React.Component {
 }
 
 // --------------------------------------------------------------------------------
+
+const tryGetComponents = value => value.getComponents ? value.getComponents() : value;
+const mapGetComponents = values => values instanceof Array ? values.map(tryGetComponents) : tryGetComponents(values)
 
 class Results extends React.Component {
     constructor(props) {
@@ -188,7 +164,7 @@ class Results extends React.Component {
         return (
             <div id="resultsContainer" className={this.props.errorMessage ? "error" : ""}>
                 <div id="results">
-                    {this.props.results.map(value => value.getComponents())}
+                    {mapGetComponents(this.props.results)}
                 </div>
                 <div id="errorMessage">
                     <div>{errName}</div>
@@ -210,7 +186,9 @@ class SideBar extends React.Component {
         return (
             <div id="sidebar">
                 <div id="valueSelection"></div>
-                <div id="values">{this.props.selection}</div>
+                <div id="values">
+                    {mapGetComponents(this.props.selection)}
+                    </div>
                 <div id="controls"></div>
             </div>
         );        
@@ -266,8 +244,3 @@ ReactDOM.render(
     <Container />,
     document.getElementById('root')
 );
-
-function process(actValues, tokens){
-    
-    return activations;
-}

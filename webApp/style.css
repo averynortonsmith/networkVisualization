@@ -108,6 +108,7 @@ textarea {
 	height: calc(100% - 211px);
 	border: 1px solid #ccc;	
 	margin-top: 9px;
+	padding: 10px;
 }
 
 #controls {
@@ -143,20 +144,6 @@ textarea {
 
 /*--------------------------------------------------------------------------------*/
 
-.token {
-	cursor: pointer;
-	display: inline-block;
-}
-
-.token .type {
-	padding: 2px 4px;
-	text-align: center;
-}
-
-.token .activation {
-	max-width: none;
-}
-
 .activation {
 	text-align: right;
 	margin: 2px;
@@ -169,10 +156,14 @@ textarea {
 
 .sentence {
 	display: block;
-	margin: 10px;
+	margin-bottom: 10px;
 }
 
-.sentence .token {
+/*--------------------------------------------------------------------------------*/
+
+.token {
+	cursor: pointer;
+	display: inline-block;
 	margin: 2px;
 	border: 1px solid #eee;
 	padding: 2px;
