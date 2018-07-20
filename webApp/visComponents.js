@@ -18,7 +18,7 @@ class Sentence extends React.Component {
     render() {
         return (
             <div className="sentence">
-                <span className="sentenceName" onClick={this.props.onClick}>sentence:</span>
+                <span className="sentenceName" onClick={this.props.onClick}>sentence</span>
                 {this.props.tokens.map(token => token.getComponents())}
             </div>);
     }

@@ -221,9 +221,9 @@ textarea {
 }
 
 .neuronInfo {
-	padding: 6px;
+	padding: 6px 6px 6px 2px;
 	font-size: 11px;
-	width: 40px;
+	min-width: 35px;
 	display: inline-block;
 	text-align: right;
 }
@@ -257,4 +257,6 @@ textarea {
 	padding: 6px;
 	margin: 0px 6px 0px 0px;
 	display: inline-block;
+	width: 50px;
+	text-align: center;
 }

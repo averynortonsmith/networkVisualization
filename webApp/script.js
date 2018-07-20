@@ -21,13 +21,6 @@ function isEmpty(object) {
     return Object.keys(object).length === 0 && object.constructor === Object
 }
 
-function take(n, object) {
-    if (object instanceof Array) {
-        return object.slice(0, n);
-    }
-    return object;
-}
-
 class Container extends React.Component {
     constructor(props) {
         super(props);
@@ -84,7 +77,7 @@ class Container extends React.Component {
 
         let neuronsDict = activations.reduce(function(result, activation) {
             let [sen, word, layer, ind] = activation.position;
-            let position = [layer, ind];
+            let position = layer + ":" + ind;
             if (position in result == false) {result[position] = []}
             result[position].push(activation);
             return result;
@@ -113,7 +106,7 @@ class Container extends React.Component {
         this.setState({query});
 
         if (query) {
-            let {activations, neurons, tokens, sentences, words} = this.state.data;
+            let {neurons, tokens, sentences, words} = this.state.data;
             let selection = this.state.selection;
 
             try {
@@ -139,7 +132,7 @@ class Container extends React.Component {
         return (
             <div id="container">
                 <Header text={this.state.text} pred={this.state.pred} />
-                <Results results={take(100, this.state.results)} errorMessage={this.state.errorMessage} />
+                <Results results={this.state.results} errorMessage={this.state.errorMessage} />
                 <SideBar selection={this.state.selection} />
                 <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
             </div>
