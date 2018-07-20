@@ -1,18 +1,17 @@
 Object.defineProperty(Array.prototype, 'take', {
-    value: function(n) { this.slice(0, n) }
-});
-
-Object.defineProperty(Array.prototype, 'average', {
-    value: function(n) {
-        let total = this.map(getValue).reduce((a, b) => a + b);
-        return <Activation actVal={total / this.length} />;
-    }
+    value: function(n) { return this.slice(0, n) }
 });
 
 Object.defineProperty(Array.prototype, 'reversed', {
-    value: function(n) { return reversed(this); }
+    value: function(n) { return [].concat(this).reverse(); }
 });
 
-function reversed(sentence) {
-    return [].concat(sentence).reverse();
+function colorBy(source, target) {
+
 }
+
+// array.reversed
+// array.take
+// sentence.getTokens
+// token.getWord 
+// colorBy

@@ -7,7 +7,8 @@ function getSentences(textData, toggleSelect) {
         for (let tok = 0; tok < sentence.length; tok++) {
             let string = sentence[tok];
             let position = [sen, tok];
-            let token = new TokenValue(string, position, toggleSelect);
+            let word = new WordValue(string, toggleSelect);
+            let token = new TokenValue(word, position, toggleSelect);
             tokens.push(token);
         }
         let position = sen;
@@ -73,16 +74,18 @@ class Container extends React.Component {
             }
         }
 
+        window.activationsData = activationsData;
+
         let sentences = getSentences(textData, toggleSelect);
 
         let neuronsDict = activations.reduce(function(result, activation) {
             let [sen, word, layer, ind] = activation.position;
-            let position = layer + ":" + ind;
-            if (position in result == false) {result[position] = []}
-            result[position].push(activation);
+            let positionString = layer + ":" + ind;
+            if (positionString in result == false) {result[positionString] = []}
+            result[positionString].push(activation);
             return result;
         }, {});
-        let neurons = Object.keys(neuronsDict).map(position => new NeuronValue(neuronsDict[position], position, toggleSelect));
+        let neurons = Object.keys(neuronsDict).map(positionString => new NeuronValue(neuronsDict[positionString], positionString, toggleSelect));
 
         let layers = [];
 
@@ -92,8 +95,8 @@ class Container extends React.Component {
         }, []);
 
         let wordsDict = tokens.reduce(function(result, token) {
-            if (token.string in result == false) {
-                result[token.string] = [];
+            if (token.word.string in result == false) {
+                result[token.word.string] = [];
             }
             return result;
         }, {});
@@ -132,7 +135,7 @@ class Container extends React.Component {
         return (
             <div id="container">
                 <Header text={this.state.text} pred={this.state.pred} />
-                <Results results={this.state.results} errorMessage={this.state.errorMessage} />
+                <Results results={this.state.results} errorMessage={this.state.errorMessage}/>
                 <SideBar selection={this.state.selection} />
                 <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
             </div>
@@ -157,7 +160,7 @@ class Container extends React.Component {
 // --------------------------------------------------------------------------------
 
 const tryGetComponents = value => value.getComponents ? value.getComponents() : value;
-const mapGetComponents = values => values instanceof Array ? values.map(tryGetComponents) : tryGetComponents(values)
+const mapGetComponents = values => values instanceof Array ? values.map(mapGetComponents) : tryGetComponents(values)
 
 class Results extends React.Component {
     constructor(props) {
@@ -168,13 +171,29 @@ class Results extends React.Component {
         let [errName, errMessage] = this.props.errorMessage.split("\n");
         return (
             <div id="resultsContainer" className={this.props.errorMessage ? "error" : ""}>
-                <div id="results">
-                    {mapGetComponents(this.props.results)}
-                </div>
+                <ResultsList results={this.props.results} shouldUpdate={this.props.errorMessage == ""} />
                 <div id="errorMessage">
                     <div>{errName}</div>
                     <div>{errMessage}</div>
                 </div>
+            </div>
+        );        
+    }
+}
+
+class ResultsList extends React.Component {
+    constructor(props) {
+        super(props);
+    }
+
+    shouldComponentUpdate(nextProps, nextState) {
+        return nextProps.shouldUpdate;
+    }
+
+    render() {
+        return (
+            <div id="results">
+                {mapGetComponents(this.props.results)}
             </div>
         );        
     }
@@ -236,7 +255,8 @@ class Footer extends React.Component {
                           id="query" 
                        value={this.props.value}
                     onChange={this.handleChange}  
-                   className={this.props.errorMessage ? "error" : ""} 
+                   className={this.props.errorMessage ? "error" : ""}
+                  spellCheck="false"
                  placeholder=">> enter query" >
                 </textarea>
             </div>

@@ -47,7 +47,7 @@ textarea {
 	position: absolute;
 	left: 0px;
 	top: 240px;
-	bottom: 80px;
+	bottom: 120px;
 	width: calc(100% - 300px);
 	box-sizing: border-box;
 	padding: 0px 10px;
@@ -107,7 +107,7 @@ textarea {
 }
 
 #values {
-	height: calc(100% - 210px);
+	height: calc(100% - 249px);
 	border: 1px solid #ccc;	
 	margin-top: 9px;
 	padding: 10px;
@@ -115,7 +115,7 @@ textarea {
 }
 
 #controls {
-	height: 58px;
+	height: 98px;
 	position: absolute;
 	bottom: 9px;
 	right: 10px;
@@ -130,7 +130,7 @@ textarea {
 	left: 0px;
 	bottom: 0px;
 	width: calc(100% - 300px);
-	height: 80px;
+	height: 120px;
 	box-sizing: border-box;
 	padding: 10px;
 }
@@ -157,7 +157,7 @@ textarea {
 	background-color: #f4f4f4;
 	color: #777;
 	padding: 6px;
-	margin: 2px;
+	width: 56px;
 }
 
 .sentence .tokenContainer {
@@ -166,11 +166,20 @@ textarea {
 
 .sentence .token {
 	display: inline-block;
-	padding: 5px;
 }
 
 .sentence .itemName {
 	display: none;
+}
+
+.sentence .tokenWord {
+	display: none;
+	padding: 5px;
+}
+
+.sentence .tokenString {
+	display: inline-block;
+	padding: 5px;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -232,11 +241,33 @@ textarea {
 
 .token {
 	cursor: pointer;
-	margin: 2px;
+	margin: 2px -1px 2px 0px;
 	border: 1px solid #eee;
 	cursor: pointer;
-	padding: 0px 6px 0px 0px;
 	display: inline-block;
+}
+
+.token .itemName {
+	margin: 0px;
+}
+
+.tokenString {
+	display: none;
+}
+
+.token .wordContainer {
+	display: inline-block;
+}
+
+.token .word {
+	display: inline-block;
+	padding: 6px;
+	border: none;
+	margin: 0px;
+}
+
+.token .word .itemName {
+	display: none;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -257,6 +288,6 @@ textarea {
 	padding: 6px;
 	margin: 0px 6px 0px 0px;
 	display: inline-block;
-	width: 50px;
+	width: 56px;
 	text-align: center;
 }
