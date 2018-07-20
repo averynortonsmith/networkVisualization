@@ -65,6 +65,10 @@ TokenValue.prototype.colorBy = function(neuron) {
     let actVal = window.activationsData[sen][tok][layer][ind];
     return new TokenValue(this.word, this.position, this.toggleSelect, actVal, neuron.key);
 };
+
+TokenValue.prototype.copy = function(neuron) {
+    return new TokenValue(this.word, this.position, this.toggleSelect);
+};
  
 TokenValue.prototype.getComponents = function() {
     return <Token word={this.word} position={this.position} actVal={this.actVal} key={this.key} onClick={() => this.toggleSelect(this)} />;

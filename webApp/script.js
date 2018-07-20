@@ -39,7 +39,8 @@ class Container extends React.Component {
         };
     }
 
-    toggleSelect(value) {
+    toggleSelect(original) {
+        let value = original.copy();
         if (this.state.selection.map(value => value.key).indexOf(value.key) > -1) {
             this.setState({selection: this.state.selection.filter(other => other.key != value.key)});
         }
