@@ -28,6 +28,8 @@ class Container extends React.Component {
         this.handleQueryChange = this.handleQueryChange.bind(this);
         this.processData = this.processData.bind(this);
         this.toggleSelect = this.toggleSelect.bind(this);
+        this.toggleControls = this.toggleControls.bind(this);
+        this.handleInputChange = this.handleInputChange.bind(this);
         this.state = {
             results: [], 
             selection: [],
@@ -36,7 +38,27 @@ class Container extends React.Component {
             data: {},
             text: [], 
             pred: [],
+            showControls: new URL(document.location).searchParams.get("view") == "controls",
+            controlValues: {modelValue: "", classifierValue: "", trainDataValue: ""},
         };
+    }
+
+    toggleControls() {
+        let showControls = !this.state.showControls;
+        this.setState({showControls: showControls});
+        let url = new URL(document.location);
+        if (showControls) {
+            url.searchParams.set("view", "controls");
+        }
+        else {
+            url.searchParams.delete("view");
+        }
+        window.history.replaceState( {} , "", url.href);
+    }
+
+    handleInputChange(inputName, value) {
+        console.log(this.state.controlValues);
+        this.setState({controlValues: {...this.state.controlValues, [inputName]: value}});
     }
 
     toggleSelect(original) {
@@ -135,10 +157,14 @@ class Container extends React.Component {
     render() {
         return (
             <div id="container">
-                <Header text={this.state.text} pred={this.state.pred} />
-                <Results results={this.state.results} errorMessage={this.state.errorMessage}/>
-                <SideBar selection={this.state.selection} />
-                <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
+                {this.state.showControls ? 
+                (<Controls toggleControls={this.toggleControls} onChange={this.handleInputChange} {...this.state.controlValues} />) :
+                (<div id="visInterface">
+                    <Header text={this.state.text} pred={this.state.pred} />
+                    <Results results={this.state.results} errorMessage={this.state.errorMessage} />
+                    <SideBar selection={this.state.selection} toggleControls={this.toggleControls} />
+                    <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
+                </div>)}
             </div>
         );  
     }
@@ -202,6 +228,40 @@ class ResultsList extends React.Component {
 
 // --------------------------------------------------------------------------------
 
+class Controls extends React.Component {
+    constructor(props) {
+        super(props);
+        this.handleChange = this.handleChange.bind(this);
+    }
+
+    handleChange(e) {
+        this.props.onChange(e.target.name, e.target.value);
+    }
+
+    render() {
+        return (
+            <div id="controls">
+                <div className="controlOption">
+                    <div>model:</div>
+                    <input id="model" name="modelValue" value={this.props.modelValue} onChange={this.handleChange} />
+                </div>
+                <div className="controlOption">
+                    <div>classifier:</div>
+                    <input id="classifier" name="classifierValue" value={this.props.classifierValue} onChange={this.handleChange} />
+                </div>
+                <div className="controlOption">
+                    <div>classifier training data:</div>
+                    <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} />
+                </div>
+                <div id="runInput" className="controlButton">run updated model</div>
+                <div id="cancelUpdate" className="controlButton" onClick={this.props.toggleControls}>cancel update</div>
+            </div>
+        );        
+    }
+}
+
+// --------------------------------------------------------------------------------
+
 class SideBar extends React.Component {
     constructor(props) {
         super(props);
@@ -210,11 +270,12 @@ class SideBar extends React.Component {
     render() {
         return (
             <div id="sidebar">
-                <div id="valueSelection"></div>
+                <div id="changeInput" onClick={this.props.toggleControls}>change model input</div>
+                <div id="inlineControls">
+                </div>
                 <div id="values">
                     {mapGetComponents(this.props.selection)}
-                    </div>
-                <div id="controls"></div>
+                </div>
             </div>
         );        
     }

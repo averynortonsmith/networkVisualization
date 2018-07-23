@@ -9,7 +9,7 @@ body {
 	position: absolute;
 	left: 0px;
 	top: 0px;
-	width: calc(100% - 300px);
+	width: calc(100% - 340px);
 	height: 240px;
 	padding: 10px;
 	box-sizing: border-box;
@@ -48,7 +48,7 @@ textarea {
 	left: 0px;
 	top: 240px;
 	bottom: 120px;
-	width: calc(100% - 300px);
+	width: calc(100% - 340px);
 	box-sizing: border-box;
 	padding: 0px 10px;
 	white-space: nowrap;
@@ -94,33 +94,41 @@ textarea {
 	position: absolute;
 	right: 0px;
 	top: 0px;
-	width: 300px;
+	width: 340px;
 	height: 100%;
-	padding: 11px 10px 10px 0px;
+	padding: 10px 10px 10px 0px;
 	box-sizing: border-box;
 }
 
-#valueSelection {
-	height: 130px;
+#inlineControls {
+	height: 184px;
 	border: 1px solid #ccc;
 	box-sizing: border-box;
+}
+
+#changeInput {
+	color: #444;
+	padding: 8px 14px;
+	margin-bottom: 6px;
+	cursor: pointer;
+	text-align: center;
+	background-color: #eee;
+	transition: background-color 100ms linear;
+	height: 30px;
+	border: 1px solid #ddd;
+	box-sizing: border-box;
+}
+
+#changeInput:hover {
+	background-color: #d4d4d4;
 }
 
 #values {
-	height: calc(100% - 249px);
+	height: calc(100% - 229px);
 	border: 1px solid #ccc;	
-	margin-top: 9px;
+	margin-top: 10px;
 	padding: 10px;
 	box-sizing: border-box;
-}
-
-#controls {
-	height: 98px;
-	position: absolute;
-	bottom: 9px;
-	right: 10px;
-	left: 0px;
-	border: 1px solid #ccc;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -129,7 +137,7 @@ textarea {
 	position: absolute;
 	left: 0px;
 	bottom: 0px;
-	width: calc(100% - 300px);
+	width: calc(100% - 340px);
 	height: 120px;
 	box-sizing: border-box;
 	padding: 10px;
@@ -143,6 +151,61 @@ textarea {
 
 #query.error {
 	border-color: #f55;
+}
+
+/*--------------------------------------------------------------------------------*/
+
+#controls {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: rgba(255, 255, 255, 1);
+	color: #222;
+}
+
+.controlOption {
+	width: 330px;
+	margin: 20px auto;
+}
+
+.controlOption input {
+	width: 330px;
+	border-radius: 0px;
+	border: 1px solid #ddd;
+	background-color: #f8f8f8;
+	padding: 8px;
+	display: block;
+	margin: 2px 0px;
+	box-sizing: border-box;
+}
+
+.controlButton {
+	width: 330px;
+	height: 30px;
+
+	text-align: center;
+	padding: 6px;
+	background-color: #eee;
+	color: #333;
+	cursor: pointer;
+	border: 1px solid #ddd;
+	box-sizing: border-box;
+}
+
+.controlButton:hover {
+	background-color: #d4d4d4;
+}
+
+#cancelUpdate {
+	position: absolute;
+	right: 10px;
+	top: 10px;
+}
+
+#runInput {
+	margin: 25px auto;
 }
 
 /*--------------------------------------------------------------------------------*/

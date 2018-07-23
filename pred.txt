@@ -1,4 +1,0 @@
-Un párrafo es un grupo de palabras para formar un grupo que suele ser una frase .
-Los párrafos a menudo son de muchas sentencias .
-Suelen ser de cuatro a ocho sentencias .
-Los párrafos pueden comenzar con un indentation ( alrededor de cinco espacios ) o por falta de una línea , y luego starting ; esto hace patente la idea cuando un párrafo termina y otro comienza .
