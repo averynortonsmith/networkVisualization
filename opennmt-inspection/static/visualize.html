@@ -1,0 +1,231 @@
+<html>
+  <head>
+      <style>
+          div {
+            border: 1px solid #000;
+            overflow: auto;
+          }
+          div.sentence {
+          }
+          span.token {
+          }
+          div#left {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            width: 30%;
+          }
+          div#right {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 30%;
+          }
+          div#models {
+            position: absolute;
+            top: 0; left: 0; right:0;
+            height: 30px;
+          }
+          div#layers {
+            position: absolute;
+            top: 30px; left: 0; right:0;
+            height: 30px;
+          }
+          div#methods {
+            position: absolute;
+            top: 60px; left: 0; right:0;
+            height: 30px;
+          }
+          div#neurons {
+            position: absolute;
+            top: 90px; left: 0; right:0; bottom: 0;
+          }
+          div.model-tab, div.method-tab, div.layer-tab {
+            padding-left: 10px;
+            padding-right: 10px;
+            display: inline-block;
+            height: 30px;
+            line-height: 30px;
+            border-top: none;
+            border-bottom: none;
+            cursor: pointer;
+          }
+          div.model-tab:hover, div.method-tab:hover, div.layer-tab:hover {
+            background-color: #AAA;
+          }
+          div.selected {
+            background-color: #A80;
+          }
+      </style>
+  </head>
+  <body>
+      <!-- Left "selection" pane -->
+      <div id="left">
+        <!-- Model selection tabs -->
+        <div id="models">
+        </div>
+        <!-- Layer selection tab -->
+        <div id="layers">
+        </div>
+        <!-- Correlation method selection tab -->
+        <div id="methods">
+          (Using correlation-max)
+        </div>
+        <!-- Neuron list -->
+        <div id="neurons">
+        </div>
+      </div>
+      <!-- Right "viewing" pane -->
+      <div id="right">
+      </div>
+
+      <script>
+        function getJSON(u, cb) {
+          let q = new XMLHttpRequest();
+          q.open('GET', u);
+          q.send();
+          q.onreadystatechange = () => {
+            if (q.readyState === 4) {
+              cb(JSON.parse(q.responseText));
+            }
+          }
+        }
+
+        function colorFor(activation) {
+          let intensity = Math.pow(0.5, Math.abs(activation));
+          let hex = Math.round(255 * intensity).toString(16);
+          if (hex.length == 1) hex = '0' + hex;
+          if (activation > 0) {
+            return '#' + hex + 'ff' + hex;
+          }
+          else {
+            return '#ff' + hex + hex;
+          }
+        }
+
+        function range(x) {
+          let r = [];
+          for (var i = 0; i < x; i += 1) {
+            r.push(i);
+          }
+          return r;
+        }
+
+        const modelsList = document.getElementById('models'),
+              methodsList = document.getElementById('methods'),
+              layerList = document.getElementById('layers'),
+              neuronList = document.getElementById('neurons'),
+              display = document.getElementById('right');
+
+        let lineElements = [];
+        let currentModel = null;
+        let currentLayer = null;
+
+        let currentModelSelector = null;
+        let currentLayerSelector = null;
+
+        getJSON('/available-models', (models) => {
+          models.forEach((modelDescription) => {
+            const model = modelDescription.name,
+                  modelIndex = modelDescription.index,
+                  layers = modelDescription.layers,
+                  size = modelDescription.size;
+
+            let tab = document.createElement('div');
+            tab.className = 'model-tab';
+            tab.innerText = model;
+
+            tab.addEventListener('click', () => {
+              currentModel = model;
+
+              if (currentModelSelector) currentModelSelector.className = 'model-tab';
+              currentModelSelector = tab;
+              currentModelSelector.className = 'model-tab selected';
+
+              layerList.innerHTML = '';
+
+              range(layers).forEach((i) => {
+                let layerElement = document.createElement('div');
+                layerElement.className = 'layer-tab';
+                layerElement.innerText = 'enc ' + i.toString();
+
+                layerElement.addEventListener('click', () => {
+                  if (currentLayerSelector) currentLayerSelector.className = 'layer-tab';
+                  currentLayerSelector = layerElement;
+                  currentLayerSelector.className = 'layer-tab selected';
+
+                  getJSON('/correlations/' + model + '/' + i, (correlations) => {
+                    // Sort by max correlation
+                    let scores = correlations[0];
+                    scores.splice(modelIndex, 1);
+
+                    let sorted = range(scores[0].length).sort((a, b) => {
+                      return Math.max.apply(this, scores.map((x) => Math.abs(x[b]))) -
+                             Math.max.apply(this, scores.map((x) => Math.abs(x[a])));
+                    });
+
+                    neuronList.innerHTML = '';
+
+                    sorted.forEach((neuron) => {
+                      let neuronElement = document.createElement('div');
+                      neuronElement.className = 'neuron-selector';
+                      neuronElement.innerText = neuron.toString() + ' ( ' +
+                          Math.max.apply(this, scores.map((x) => x[neuron])) + ')';
+
+                      neuronElement.addEventListener('click', () => {
+                        getJSON('/dump/' + model + '/' + i + '/' + neuron, (activations) => {
+                          let mean = activations.reduce((a, b) => a + b) / activations.length;
+                          let std = Math.sqrt(
+                              activations.map((x) => (x - mean) * (x - mean)).reduce((a, b) => a + b) /
+                              activations.length);
+                          console.log(activations.length, lineElements.length);
+                          activations.forEach((activation, i) => {
+                            activation = (activation - mean) / std
+                            lineElements[i].style.backgroundColor = colorFor(activation);
+                            lineElements[i].title = Math.round(activation * 100) / 100;
+                          });
+                        });
+                      });
+                      neuronList.appendChild(neuronElement);
+                    });
+                  });
+                  currentLayer = i;
+                });
+                layerList.appendChild(layerElement);
+              });
+
+              getJSON('/source/' + model, (lines) => {
+                display.innerHTML = '';
+
+                lineElements = [];
+
+                lines.forEach((line) => {
+                  lineElement = document.createElement('div');
+                  line.forEach((token, i) => {
+                    tokenElement = document.createElement('span');
+                    tokenElement.className = 'token';
+                    tokenElement.innerHTML = token;
+                    lineElement.appendChild(tokenElement);
+
+                    if (i !== line.length - 1) {
+                      spacer = document.createElement('span');
+                      spacer.innerText = ' ';
+                      lineElement.appendChild(spacer);
+                    }
+
+                    lineElements.push(tokenElement);
+                  });
+
+                  display.appendChild(lineElement);
+                });
+              });
+            });
+
+            modelsList.appendChild(tab);
+          });
+        });
+      </script>
+  </body>
+</html>
