@@ -30,6 +30,8 @@ class Container extends React.Component {
         this.toggleSelect = this.toggleSelect.bind(this);
         this.toggleControls = this.toggleControls.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
+        this.handleResponse = this.handleResponse.bind(this);
+        this.handleServerError = this.handleServerError.bind(this);
         this.state = {
             results: [], 
             selection: [],
@@ -39,7 +41,12 @@ class Container extends React.Component {
             text: [], 
             pred: [],
             showControls: new URL(document.location).searchParams.get("view") == "controls",
-            controlValues: {modelValue: "", classifierValue: "", trainDataValue: ""},
+            serverError: "",
+            controlValues: {modelPath: "models/en-es-1.pt", 
+                            inputText: "A paragraph is a group of words put together to form a group that is usually longer than a sentence .\n"
+                                     + "Paragraphs are often made up of many sentences . They are usually between four to eight sentences .\n"
+                                     + "Paragraphs can begin with an indentation ( about five spaces ) , or by missing a line out , and then starting again "
+                                     + "; this makes telling when one paragraph ends and another begins easier . ", classifierPath: "", trainDataValue: ""},
         };
     }
 
@@ -57,7 +64,6 @@ class Container extends React.Component {
     }
 
     handleInputChange(inputName, value) {
-        console.log(this.state.controlValues);
         this.setState({controlValues: {...this.state.controlValues, [inputName]: value}});
     }
 
@@ -158,7 +164,7 @@ class Container extends React.Component {
         return (
             <div id="container">
                 {this.state.showControls ? 
-                (<Controls toggleControls={this.toggleControls} onChange={this.handleInputChange} {...this.state.controlValues} />) :
+                (<Controls toggleControls={this.toggleControls} onChange={this.handleInputChange} handleResponse={this.handleResponse} serverError={this.state.serverError} handleError={this.handleServerError} {...this.state.controlValues} />) :
                 (<div id="visInterface">
                     <Header text={this.state.text} pred={this.state.pred} />
                     <Results results={this.state.results} errorMessage={this.state.errorMessage} />
@@ -169,18 +175,15 @@ class Container extends React.Component {
         );  
     }
 
-    componentDidMount() {
-        let fetches = [];
-        fetches.push(fetch("../activations.json").then(response => response.json()));
-        fetches.push(fetch("../text.json").then(response => response.json()));
-        fetches.push(fetch("../pred.json").then(response => response.json()));
-        Promise.all(fetches).then(function([activationsData, textData, predData]) {
-            this.processData(activationsData, textData, predData);
-            this.handleQueryChange(this.state.query);
-        }.bind(this)
-        ).catch(function(e) {
-            console.log(e);
-        });
+    handleResponse(dataString) {
+        let [activationsData, textData, predData] = JSON.parse(dataString);
+        this.processData(activationsData, textData, predData);
+        this.handleQueryChange(this.state.query);
+        this.toggleControls();
+    }
+
+    handleServerError(err) {
+        this.setState({serverError: err});
     }
 }
 
@@ -240,52 +243,62 @@ class Controls extends React.Component {
     }
 
     onSubmit(e) {
-        var XHR = new XMLHttpRequest();
-          var FD  = new FormData();
+        this.props.handleError("");
 
-          // Push our data into our FormData object
-            FD.append("asdf", "qwerty");
+        var request = new XMLHttpRequest();
+        var formData  = new FormData();
 
-          // Define what happens on successful data submission
-          XHR.addEventListener('load', function(event) {
-            alert('Yeah! Data sent and response loaded.');
-          });
+        // Push our data into our FormData object
+        formData.append("modelPath", this.props.modelPath);
+        formData.append("inputText", this.props.inputText);
 
-          // Define what happens in case of error
-          XHR.addEventListener('error', function(event) {
-            alert('Oops! Something went wrong.');
-          });
+        // Define what happens on successful data submission
+        request.addEventListener('load', function(event) {
+            if (request.status == 500) {
+                this.props.handleError(request.response);
+            }
+            else {
+                this.props.handleResponse(request.response);
+            }
+        }.bind(this));
 
-          // Set up our request
-          XHR.open('POST', 'http://localhost:5000/');
+        // Define what happens in case of error
+        request.addEventListener("error", function(event) {
+            alert("Oops! Something went wrong.");
+        });
 
-          // Send our FormData object; HTTP headers are set automatically
-          XHR.send(FD);
+        // Set up our request
+        request.open("POST", "http://localhost:5000/model");
+
+        // Send our FormData object; HTTP headers are set automatically
+        request.send(formData);
+
 
         return false;
     }
 
     render() {
         return (
-            <div id="controls">
-                <form onSubmit={this.onSubmit} method="Post">
-                    <div className="controlOption">
-                        <div>model:</div>
-                        <input id="model" name="modelValue" value={this.props.modelValue} onChange={this.handleChange} />
-                    </div>
-                    <div className="controlOption">
-                        <div>classifier:</div>
-                        <input id="classifier" name="classifierValue" value={this.props.classifierValue} onChange={this.handleChange} />
-                    </div>
-                    <div className="controlOption">
-                        <div>classifier training data:</div>
-                        <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} />
-                    </div>
-                    <div id="runInput" className="controlButton">run updated model</div>
-                    <div id="cancelUpdate" className="controlButton" onClick={this.props.toggleControls}>cancel update</div>
-
-                    <button type="submit">Submit</button>
-                </form>
+            <div id="controls" className="disabled">
+                <div className="controlOption">
+                    <div>model:</div>
+                    <input id="model" name="modelPath" value={this.props.modelPath} onChange={this.handleChange} disabled/>
+                </div>
+                <div className="controlOption">
+                    <div>input text:</div>
+                    <textarea id="inputText" name="inputText" value={this.props.inputText} onChange={this.handleChange} disabled></textarea>
+                </div>
+                <div className="controlOption">
+                    <div>classifier:</div>
+                    <input id="classifier" name="classifierPath" value={this.props.classifierPath} onChange={this.handleChange} disabled/>
+                </div>
+                <div className="controlOption">
+                    <div>classifier training data:</div>
+                    <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} disabled/>
+                </div>
+                <div id="runInput" className="controlButton" onClick={this.onSubmit}>run updated model</div>
+                <div id="returnVis" className="controlButton" onClick={this.props.toggleControls}>return to visualization</div>
+                {this.props.serverError ? <div id="controlError"><div>Server Error:</div>{this.props.serverError}</div> : ""}
             </div>
         );        
     }
