@@ -31,7 +31,7 @@ class Container extends React.Component {
         this.toggleControls = this.toggleControls.bind(this);
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleResponse = this.handleResponse.bind(this);
-        this.handleServerError = this.handleServerError.bind(this);
+        this.updateServerState = this.updateServerState.bind(this);
         this.state = {
             results: [], 
             selection: [],
@@ -41,7 +41,7 @@ class Container extends React.Component {
             text: [], 
             pred: [],
             showControls: new URL(document.location).searchParams.get("view") == "controls",
-            serverError: "",
+            controlState: {serverState: "normal", message: ""}, // state <- {"normal", "controlError", "pending"}
             controlValues: {modelPath: "models/en-es-1.pt", 
                             inputText: "A paragraph is a group of words put together to form a group that is usually longer than a sentence .\n"
                                      + "Paragraphs are often made up of many sentences . They are usually between four to eight sentences .\n"
@@ -51,6 +51,9 @@ class Container extends React.Component {
     }
 
     toggleControls() {
+        if (this.state.controlState.serverState == "pending") {
+            return;
+        }
         let showControls = !this.state.showControls;
         this.setState({showControls: showControls});
         let url = new URL(document.location);
@@ -164,7 +167,7 @@ class Container extends React.Component {
         return (
             <div id="container">
                 {this.state.showControls ? 
-                (<Controls toggleControls={this.toggleControls} onChange={this.handleInputChange} handleResponse={this.handleResponse} serverError={this.state.serverError} handleError={this.handleServerError} {...this.state.controlValues} />) :
+                (<Controls toggleControls={this.toggleControls} onChange={this.handleInputChange} handleResponse={this.handleResponse} controlState={this.state.controlState} updateServerState={this.updateServerState} {...this.state.controlValues} />) :
                 (<div id="visInterface">
                     <Header text={this.state.text} pred={this.state.pred} />
                     <Results results={this.state.results} errorMessage={this.state.errorMessage} />
@@ -176,14 +179,15 @@ class Container extends React.Component {
     }
 
     handleResponse(dataString) {
+        this.updateServerState("normal", "");
         let [activationsData, textData, predData] = JSON.parse(dataString);
         this.processData(activationsData, textData, predData);
         this.handleQueryChange(this.state.query);
         this.toggleControls();
     }
 
-    handleServerError(err) {
-        this.setState({serverError: err});
+    updateServerState(serverState, message) {
+        this.setState({controlState: {serverState, message}});
     }
 }
 
@@ -243,7 +247,11 @@ class Controls extends React.Component {
     }
 
     onSubmit(e) {
-        this.props.handleError("");
+        if (this.props.controlState.serverState == "pending") {
+            return;
+        }
+
+        this.props.updateServerState("pending", "");
 
         var request = new XMLHttpRequest();
         var formData  = new FormData();
@@ -255,7 +263,7 @@ class Controls extends React.Component {
         // Define what happens on successful data submission
         request.addEventListener('load', function(event) {
             if (request.status == 500) {
-                this.props.handleError(request.response);
+                this.props.updateServerState("serverError", request.response);
             }
             else {
                 this.props.handleResponse(request.response);
@@ -272,33 +280,32 @@ class Controls extends React.Component {
 
         // Send our FormData object; HTTP headers are set automatically
         request.send(formData);
-
-
-        return false;
     }
 
     render() {
+        let {serverState, message} = this.props.controlState;
+        let disabled = serverState == "pending";
         return (
-            <div id="controls" className="disabled">
+            <div id="controls" className={serverState}>
                 <div className="controlOption">
                     <div>model:</div>
-                    <input id="model" name="modelPath" value={this.props.modelPath} onChange={this.handleChange} disabled/>
+                    <input id="model" name="modelPath" value={this.props.modelPath} onChange={this.handleChange} disabled={disabled}/>
                 </div>
                 <div className="controlOption">
                     <div>input text:</div>
-                    <textarea id="inputText" name="inputText" value={this.props.inputText} onChange={this.handleChange} disabled></textarea>
+                    <textarea id="inputText" name="inputText" value={this.props.inputText} onChange={this.handleChange} disabled={disabled}></textarea>
                 </div>
                 <div className="controlOption">
                     <div>classifier:</div>
-                    <input id="classifier" name="classifierPath" value={this.props.classifierPath} onChange={this.handleChange} disabled/>
+                    <input id="classifier" name="classifierPath" value={this.props.classifierPath} onChange={this.handleChange} disabled={true}/>
                 </div>
                 <div className="controlOption">
                     <div>classifier training data:</div>
-                    <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} disabled/>
+                    <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} disabled={true}/>
                 </div>
                 <div id="runInput" className="controlButton" onClick={this.onSubmit}>run updated model</div>
                 <div id="returnVis" className="controlButton" onClick={this.props.toggleControls}>return to visualization</div>
-                {this.props.serverError ? <div id="controlError"><div>Server Error:</div>{this.props.serverError}</div> : ""}
+                <div id="controlMessage"><div>Server Error:</div>{message}</div>
             </div>
         );        
     }

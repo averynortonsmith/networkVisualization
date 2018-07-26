@@ -165,20 +165,21 @@ textarea {
 	color: #222;
 }
 
-#controls.disabled {
+#controls.pending {
 	cursor: wait;
 }
 
-#controls.disabled .controlOption {
+#controls.pending .controlOption {
 	opacity: .5;
 }
 
 .controlOption {
 	width: 330px;
 	margin: 20px auto;
+	transition: opacity 100ms linear;
 }
 
-.controlOption input, textarea {
+.controlOption input, .controlOption textarea {
 	width: 330px;
 	border-radius: 0px;
 	border: 1px solid #ddd;
@@ -193,7 +194,7 @@ textarea {
 	height: 200px;
 }
 
-.disabled input, textarea {
+.pending input, .pending textarea {
 	cursor: wait;
 }
 
@@ -213,12 +214,12 @@ textarea {
 	background-color: #d4d4d4;
 }
 
-.disabled .controlButton {
+.pending .controlButton {
 	cursor: wait;
 	opacity: .5;
 }
 
-.disabled .controlButton:hover {
+.pending .controlButton:hover {
 	background-color: #eee;
 }
 
@@ -233,14 +234,14 @@ textarea {
 	margin: 25px auto;
 }
 
-#controlError {
+#controlMessage {
 	margin: 0px auto;
 	width: 330px;
-	background-color: #ff6666;
 	color: #fff;
-	font-weight: bold;
 	padding: 24px 16px;
 	box-sizing: border-box;
+	font-weight: bold;
+	background-color: #ff6666;
 }
 
 /*--------------------------------------------------------------------------------*/
