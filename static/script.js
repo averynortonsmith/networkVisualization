@@ -299,7 +299,7 @@ class Controls extends React.Component {
         });
 
         // Set up our request
-        request.open("POST", "http://localhost:5000/model");
+        request.open("POST", "http://nanuk.csail.mit.edu:5000/model");
 
         // Send our FormData object; HTTP headers are set automatically
         request.send(formData);
