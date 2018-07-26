@@ -232,29 +232,60 @@ class Controls extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
+        this.onSubmit = this.onSubmit.bind(this);
     }
 
     handleChange(e) {
         this.props.onChange(e.target.name, e.target.value);
     }
 
+    onSubmit(e) {
+        var XHR = new XMLHttpRequest();
+          var FD  = new FormData();
+
+          // Push our data into our FormData object
+            FD.append("asdf", "qwerty");
+
+          // Define what happens on successful data submission
+          XHR.addEventListener('load', function(event) {
+            alert('Yeah! Data sent and response loaded.');
+          });
+
+          // Define what happens in case of error
+          XHR.addEventListener('error', function(event) {
+            alert('Oops! Something went wrong.');
+          });
+
+          // Set up our request
+          XHR.open('POST', 'http://localhost:5000/');
+
+          // Send our FormData object; HTTP headers are set automatically
+          XHR.send(FD);
+
+        return false;
+    }
+
     render() {
         return (
             <div id="controls">
-                <div className="controlOption">
-                    <div>model:</div>
-                    <input id="model" name="modelValue" value={this.props.modelValue} onChange={this.handleChange} />
-                </div>
-                <div className="controlOption">
-                    <div>classifier:</div>
-                    <input id="classifier" name="classifierValue" value={this.props.classifierValue} onChange={this.handleChange} />
-                </div>
-                <div className="controlOption">
-                    <div>classifier training data:</div>
-                    <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} />
-                </div>
-                <div id="runInput" className="controlButton">run updated model</div>
-                <div id="cancelUpdate" className="controlButton" onClick={this.props.toggleControls}>cancel update</div>
+                <form onSubmit={this.onSubmit} method="Post">
+                    <div className="controlOption">
+                        <div>model:</div>
+                        <input id="model" name="modelValue" value={this.props.modelValue} onChange={this.handleChange} />
+                    </div>
+                    <div className="controlOption">
+                        <div>classifier:</div>
+                        <input id="classifier" name="classifierValue" value={this.props.classifierValue} onChange={this.handleChange} />
+                    </div>
+                    <div className="controlOption">
+                        <div>classifier training data:</div>
+                        <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} />
+                    </div>
+                    <div id="runInput" className="controlButton">run updated model</div>
+                    <div id="cancelUpdate" className="controlButton" onClick={this.props.toggleControls}>cancel update</div>
+
+                    <button type="submit">Submit</button>
+                </form>
             </div>
         );        
     }
