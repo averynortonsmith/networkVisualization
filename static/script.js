@@ -35,13 +35,14 @@ class Container extends React.Component {
         this.setMessage = this.setMessage.bind(this);
         this.state = {
             results: [], 
+            renderedComponents: [], 
             selection: [],
             query: "tokens.map(token => token.colorBy(neurons[0]))", 
             errorMessage: "",
             data: {},
             text: [], 
             pred: [],
-            showControls: new URL(document.location).searchParams.get("view") == "controls",
+            showControls: new URL(document.location).searchParams.get("view") != "visualization",
             controlState: {pending: false, message: ""},
             controlValues: {modelPath: "models/en-es-1.pt", 
                             inputText: "A paragraph is a group of words put together to form a group that is usually longer than a sentence .\n"
@@ -59,10 +60,10 @@ class Container extends React.Component {
         this.setState({showControls: showControls});
         let url = new URL(document.location);
         if (showControls) {
-            url.searchParams.set("view", "controls");
+            url.searchParams.delete("view");
         }
         else {
-            url.searchParams.delete("view");
+            url.searchParams.set("view", "visualization");
         }
         window.history.replaceState( {} , "", url.href);
     }
@@ -141,7 +142,10 @@ class Container extends React.Component {
     }
 
     handleQueryChange(query) {
-        this.setState({query});
+        const tryGetComponents = value => value.getComponents ? value.getComponents() : value;
+        const mapGetComponents = values => values instanceof Array ? values.map(mapGetComponents) : tryGetComponents(values)
+
+         this.setState({query});
 
         if (query) {
             let {neurons, tokens, sentences, words} = this.state.data;
@@ -154,7 +158,9 @@ class Container extends React.Component {
                     this.setState({errorMessage: errorMessage});
                     return;
                 }
+                let renderedComponents = mapGetComponents(results);
                 this.setState({results: results});
+                this.setState({renderedComponents: renderedComponents});
                 this.setState({errorMessage: ""});
             }
             catch (err) {
@@ -181,7 +187,7 @@ class Container extends React.Component {
                 ) :
                 (<div id="visInterface">
                     <Header text={this.state.text} pred={this.state.pred} />
-                    <Results results={this.state.results} errorMessage={this.state.errorMessage} />
+                    <Results renderedComponents={this.state.renderedComponents} errorMessage={this.state.errorMessage} />
                     <SideBar selection={this.state.selection} toggleControls={this.toggleControls} />
                     <Footer onChange={this.handleQueryChange} errorMessage={this.state.errorMessage} value={this.state.query} />
                 </div>)}
@@ -219,7 +225,7 @@ class Results extends React.Component {
         let [errName, errMessage] = this.props.errorMessage.split("\n");
         return (
             <div id="resultsContainer" className={this.props.errorMessage ? "error" : ""}>
-                <ResultsList results={this.props.results} shouldUpdate={this.props.errorMessage == ""} />
+                <ResultsList renderedComponents={this.props.renderedComponents} shouldUpdate={this.props.errorMessage == ""} />
                 <div id="errorMessage">
                     <div>{errName}</div>
                     <div>{errMessage}</div>
@@ -241,7 +247,7 @@ class ResultsList extends React.Component {
     render() {
         return (
             <div id="results">
-                {mapGetComponents(this.props.results)}
+                {this.props.renderedComponents}
             </div>
         );        
     }
