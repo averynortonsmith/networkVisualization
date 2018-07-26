@@ -246,7 +246,6 @@ textarea {
 .sentence {
 	display: block;
 	margin-bottom: 10px;
-	cursor: pointer;
 }
 
 .sentenceName {
@@ -254,6 +253,7 @@ textarea {
 	color: #777;
 	padding: 6px;
 	width: 56px;
+	cursor: pointer;
 }
 
 .sentence .tokenContainer {
