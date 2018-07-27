@@ -52,7 +52,12 @@ class Container extends React.Component {
                  inputText: "A paragraph is a group of words put together to form a group that is usually longer than a sentence .\n\n"
                           + "Paragraphs are often made up of many sentences . They are usually between four to eight sentences .\n\n"
                           + "Paragraphs can begin with an indentation ( about five spaces ) , or by missing a line out , and then starting again "
-                          + "; this makes telling when one paragraph ends and another begins easier . ", classifierPath: "", trainDataValue: ""},
+                          + "; this makes telling when one paragraph ends and another begins easier .\n\n"
+                          + "A sentence is a group of words that are put together to mean something .\n\n"
+                          + "A sentence is the basic unit of language which expresses a complete thought .\n\n"
+                          + "It does this by following the grammatical rules of syntax .",
+                classifierPath: "",
+                trainDataValue: ""},
         };
         window.toggleSelect = this.toggleSelect
     }
@@ -121,10 +126,8 @@ class Container extends React.Component {
                     for (let ind = 0; ind < activationsData[sen][word][layer].length; ind++){
                         let actVal     = activationsData[sen][word][layer][ind];
                         let position   = [sen, word, layer, ind];
-                        let before     = textData[sen].slice(Math.max(word - 2, 0), word).map(string => new WordValue(string));
-                        let after      = textData[sen].slice(word + 1, word + 3).map(string => new WordValue(string));
-                        let string     = new WordValue(textData[sen][word], true);
-                        let activation = new ActivationValue(actVal, {before, after, string}, position);
+                        let string     = new WordValue(textData[sen][word]);
+                        let activation = new ActivationValue(actVal, position);
                         activations.push(activation);
                     }
                 }
@@ -393,22 +396,53 @@ class Controls extends React.Component {
             <div id="controls" className={pending ? "pending" : ""}>
                 <div className="controlOption">
                     <div>model:</div>
-                    <input id="model" name="modelPath" value={this.props.modelPath} onChange={this.handleChange} disabled={pending}/>
+                    <input
+                        id       = "model"
+                        name     = "modelPath"
+                        value    = {this.props.modelPath}
+                        onChange = {this.handleChange}
+                        disabled = {pending}/>
                 </div>
                 <div className="controlOption">
                     <div>input text:</div>
-                    <textarea id="inputText" name="inputText" value={this.props.inputText} onChange={this.handleChange} disabled={pending}></textarea>
+                    <textarea
+                        id       = "inputText"
+                        name     = "inputText"
+                        value    = {this.props.inputText}
+                        onChange = {this.handleChange}
+                        disabled = {pending}>
+                    </textarea>
                 </div>
                 <div className="controlOption">
                     <div>classifier:</div>
-                    <input id="classifier" name="classifierPath" value={this.props.classifierPath} onChange={this.handleChange} disabled={true}/>
+                    <input
+                        id       = "classifier"
+                        name     = "classifierPath"
+                        value    = {this.props.classifierPath}
+                        onChange = {this.handleChange}
+                        disabled = {true}/>
                 </div>
                 <div className="controlOption">
                     <div>classifier training data:</div>
-                    <input id="trainData" name="trainDataValue" value={this.props.trainDataValue} onChange={this.handleChange} disabled={true}/>
+                    <input
+                        id       = "trainData"
+                        name     = "trainDataValue"
+                        value    = {this.props.trainDataValue}
+                        onChange = {this.handleChange}
+                        disabled = {true}/>
                 </div>
-                <div id="runInput" className="controlButton" onClick={this.onSubmit}>run updated model</div>
-                <div id="returnVis" className="controlButton" onClick={this.props.toggleControls}>return to visualization</div>
+                <div
+                    id        = "runInput"
+                    className = "controlButton"
+                    onClick   = {this.onSubmit}>
+                    run updated model
+                </div>
+                <div
+                    id        = "returnVis"
+                    className = "controlButton"
+                    onClick   = {this.props.toggleControls}>
+                    return to visualization
+                </div>
                 {message ? <div id="controlMessage"><div>Server Error:</div>{message}</div> : ""}
             </div>
         );        
@@ -469,12 +503,12 @@ class Footer extends React.Component {
         return (
             <div id="footer">
                 <textarea autoFocus
-                          id="query" 
-                       value={this.props.value}
-                    onChange={this.handleChange}  
-                   className={this.props.errorMessage ? "error" : ""}
-                  spellCheck="false"
-                 placeholder=">> enter query" >
+                    id          = "query" 
+                    value       = {this.props.value}
+                    onChange    = {this.handleChange}  
+                    className   = {this.props.errorMessage ? "error" : ""}
+                    spellCheck  = "false"
+                    placeholder = ">> enter query" >
                 </textarea>
             </div>
         );
