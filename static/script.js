@@ -12,9 +12,28 @@ class Container extends React.Component {
         this.handleResponse    = this.handleResponse.bind(this);    // process response from backend
         this.setPending        = this.setPending.bind(this);        // are we waiting for response from backend
         this.setMessage        = this.setMessage.bind(this);        // display error message on controls page
-        this.mapGetComponents  = this.mapGetComponents.bind(this);
-        this.tryGetComponents  = this.tryGetComponents.bind(this);
-        this.getSentences      = this.getSentences.bind(this);
+        this.mapGetComponents  = this.mapGetComponents.bind(this);  // get react components for values in a nested list
+        this.tryGetComponents  = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
+        this.getSentences      = this.getSentences.bind(this);      // get sentence values from text tokens
+
+        // results:            values returned by a succesfull query
+        // renderedComponents: react components representing the result values
+        // selection:          values that have been selected, appear in sidebar
+        // selectedComponents: react components representing the selected values
+        // query:              query js expression, can access neurons, tokens, sentences, and words
+        // errorMessage:       contains string rep of errors in query eval
+        // data:               set in this.processData, contains {activations, neurons, tokens, sentences, words}
+        // text:               sentences values holding input text
+        // pred:               sentence values holding predicted text
+        // showControls:       are ew viewing controls view or visualization view
+
+        // controlState:       
+        //     pending:        are we waiting on a response from the backend
+        //     message:        error string from backend
+        
+        // controlValues:      
+        //     modelPath:      for backend, path to model in ../models directory
+        //     inputText:      for backend, text to be translated / processed
 
         this.state = {
             results: [], 
@@ -69,7 +88,7 @@ class Container extends React.Component {
     toggleSelect(original) {
         // copy to remove activation highlighting
         let value = original.copy();
-        
+
         // check if any element in selections has same key
         // element keys must be unique
         // selection should always contain renderable objects, 
@@ -174,10 +193,10 @@ class Container extends React.Component {
             let tokens = [];
             let sentence = textData[sen];
             for (let tok = 0; tok < sentence.length; tok++) {
-                let string = sentence[tok];
+                let string   = sentence[tok];
                 let position = [sen, tok];
-                let word = new WordValue(string);
-                let token = new TokenValue(word, position);
+                let word     = new WordValue(string);
+                let token    = new TokenValue(word, position);
                 tokens.push(token);
             }
             let position = sen;
@@ -323,16 +342,20 @@ class Controls extends React.Component {
         this.props.onChange(e.target.name, e.target.value);
     }
 
+    // adapted from:
+    // https://developer.mozilla.org/en-US/docs/Learn/HTML/Forms/Sending_forms_through_JavaScript
     onSubmit(e) {
+        // ignore new request if old one is still processing
         if (this.props.controlState.pending) {
             return;
         }
 
+        // clear error message from last request, if there was one
         this.props.setMessage("");
         this.props.setPending(true);
 
         var request = new XMLHttpRequest();
-        var formData  = new FormData();
+        var formData = new FormData();
 
         // Push our data into our FormData object
         formData.append("modelPath", this.props.modelPath);
@@ -357,6 +380,7 @@ class Controls extends React.Component {
         }.bind(this));
 
         // Set up our request
+        // hard-coded url to get rid of CORS error, should find better solution
         request.open("POST", "http://nanuk.csail.mit.edu:5000/model");
 
         // Send our FormData object; HTTP headers are set automatically
