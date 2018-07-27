@@ -16,6 +16,9 @@ Object.defineProperty(Array.prototype, 'colorBy', {
 });
 
 TokenValue.prototype.colorBy = function(colorSource) {
+	if (colorSource instanceof Array) {
+		return colorSource.map(source => this.colorBy(source));
+	}
     let [layer, ind] = colorSource.position;
     let [sen, tok]   = this.position;
     let actVal       = window.activationsData[sen][tok][layer][ind];
@@ -24,6 +27,9 @@ TokenValue.prototype.colorBy = function(colorSource) {
 };
 
 SentenceValue.prototype.colorBy = function(colorSource) {
+	if (colorSource instanceof Array) {
+		return colorSource.map(source => this.colorBy(source));
+	}
 	let newTokens = this.tokens.map(token => token.colorBy(colorSource)) 
     let colorer   = colorSource.key
     return new SentenceValue(newTokens, this.position, colorer);

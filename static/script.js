@@ -40,7 +40,7 @@ class Container extends React.Component {
             renderedComponents: [], 
             selection: [],
             selectedComponents: [],
-            query: "tokens.map(token => token.colorBy(neurons[0]))", 
+            query: "sentences.colorBy(neurons[0])", 
             errorMessage: "",
             data: {},
             text: [], 

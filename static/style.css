@@ -278,6 +278,10 @@ textarea {
 	padding: 5px;
 }
 
+#results .sentence {
+	margin: -2px 0px 0px 0px;
+}
+
 /*--------------------------------------------------------------------------------*/
 
 .activation {
