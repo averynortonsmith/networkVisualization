@@ -7,10 +7,9 @@ function getObjectColor(object) {
 
 // --------------------------------------------------------------------------------
 
-function SentenceValue(tokens, position, toggleSelect) {
+function SentenceValue(tokens, position) {
     this.position = position;
     this.tokens = tokens;
-    this.toggleSelect = toggleSelect;
     this.key = "Sentence " + position;
 }
 
@@ -24,11 +23,11 @@ function getTokens(sentence) {
 }
 
 SentenceValue.prototype.copy = function(neuron) {
-    return new SentenceValue(this.tokens, this.position, this.toggleSelect);
+    return new SentenceValue(this.tokens, this.position);
 };
  
 SentenceValue.prototype.getComponents = function() {
-    return <Sentence tokens={this.tokens} position={this.position} key={this.key} onClick={() => this.toggleSelect(this)} />;
+    return <Sentence tokens={this.tokens} position={this.position} key={this.key} onClick={() => window.toggleSelect(this)} />;
 };
 
 class Sentence extends React.Component {
@@ -47,10 +46,9 @@ class Sentence extends React.Component {
 
 // --------------------------------------------------------------------------------
 
-function TokenValue(word, position, toggleSelect, actVal=0, colorer="") {
+function TokenValue(word, position, actVal=0, colorer="") {
     this.position = position;
     this.word = word;
-    this.toggleSelect = toggleSelect;
     this.actVal = actVal;
     this.key = "Token " + position + colorer;
 }
@@ -67,15 +65,15 @@ TokenValue.prototype.colorBy = function(neuron) {
     let [layer, ind] = neuron.position;
     let [sen, tok] = this.position;
     let actVal = window.activationsData[sen][tok][layer][ind];
-    return new TokenValue(this.word, this.position, this.toggleSelect, actVal, neuron.key);
+    return new TokenValue(this.word, this.position, actVal, neuron.key);
 };
 
 TokenValue.prototype.copy = function(neuron) {
-    return new TokenValue(this.word, this.position, this.toggleSelect);
+    return new TokenValue(this.word, this.position);
 };
  
 TokenValue.prototype.getComponents = function() {
-    return <Token word={this.word} position={this.position} actVal={this.actVal} key={this.key} onClick={() => this.toggleSelect(this)} />;
+    return <Token word={this.word} position={this.position} actVal={this.actVal} key={this.key} onClick={() => window.toggleSelect(this)} />;
 };
 
 class Token extends React.Component {
@@ -95,20 +93,19 @@ class Token extends React.Component {
 
 // --------------------------------------------------------------------------------
 
-function WordValue(string, toggleSelect, bold=false, actVal=0) {
+function WordValue(string, bold=false, actVal=0) {
     this.string = string;
-    this.toggleSelect = toggleSelect;
     this.bold = bold;
     this.actVal = actVal;
     this.key = "Word " + string;
 }
 
 WordValue.prototype.copy = function(neuron) {
-    return new WordValue(this.string, this.toggleSelect);
+    return new WordValue(this.string);
 };
  
 WordValue.prototype.getComponents = function() {
-    return <Word string={this.string} bold={this.bold} position={this.position} actVal={this.actVal} key={this.key} onClick={() => this.toggleSelect(this)} />;
+    return <Word string={this.string} bold={this.bold} position={this.position} actVal={this.actVal} key={this.key} onClick={() => window.toggleSelect(this)} />;
 };
 
 class Word extends React.Component {
@@ -127,31 +124,29 @@ class Word extends React.Component {
 
 // --------------------------------------------------------------------------------
 
-function ActivationValue(actVal, stringData, position, toggleSelect) {
+function ActivationValue(actVal, stringData, position) {
     this.position = position;
     this.actVal = actVal;
     this.stringData = stringData;
-    this.toggleSelect = toggleSelect;
     this.key = "Activation " + position;
 }
 
 // --------------------------------------------------------------------------------
 
-function NeuronValue(activations, positionString, toggleSelect) {
+function NeuronValue(activations, positionString) {
     this.positionString = positionString;
     this.position = positionString.split(":");
     this.activations = activations;
-    this.toggleSelect = toggleSelect;
     this.key = "Neuron " + positionString
 }
 
 NeuronValue.prototype.copy = function(neuron) {
-    return new NeuronValue(this.activations, this.positionString, this.toggleSelect);
+    return new NeuronValue(this.activations, this.positionString);
 };
  
 NeuronValue.prototype.getComponents = function() {
     let activationComponents = this.activations;
-    return <Neuron positionString={this.positionString} activationComponents={activationComponents} key={this.key} onClick={() => this.toggleSelect(this)} />;
+    return <Neuron positionString={this.positionString} activationComponents={activationComponents} key={this.key} onClick={() => window.toggleSelect(this)} />;
 };
 
 

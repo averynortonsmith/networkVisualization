@@ -6,22 +6,26 @@ import translate
 
 app = Flask(__name__)
 
+# make flask load index.html by default
 @app.route("/")
 def index():
     return app.send_static_file("index.html")
 
+# for loading css, js
 @app.route("/<path:filename>")
 def static_file(filename):
     return app.send_static_file(filename)
 
+# frontend sends requests to http://localhost:5000/model
 @app.route("/model", methods=["POST"])
-def hello_world():
+def model():
     modelPath = "models/" + request.form["modelPath"]
     inputText = [sentence for sentence in request.form["inputText"].splitlines() if sentence]
 
     try:
         activations, text, preds = getData(modelPath, inputText)
     except Exception as err:
+        # catch python exception, throw http 500 error with error message
         return str(err), 500
 
     return jsonify([activations, text, preds])
@@ -31,6 +35,9 @@ def hello_world():
 import torch
 import json
 
+# adapted from anthony's code
+# normalize a nested list of values
+# convert and tensors to regular lists
 def listify(x, norm=1):
     if type(x) == torch.Tensor:
         return (x / norm).tolist()
@@ -38,7 +45,9 @@ def listify(x, norm=1):
         return [listify(y, norm=norm) for y in x]
     else:
         return x
-
+ 
+# convert nested list of lists / tensors
+# to a flat element stream
 def flatten(x):
     if type(x) == torch.Tensor:
         yield from x.tolist()
@@ -48,10 +57,13 @@ def flatten(x):
     else:
         yield x
         
-
+# modelPath: path to model in the ./models directory
+# inputText: string of input text to model
+# !!! currently, input text must already be tokenized with spaces - need to fix
 def getData(modelPath, inputText):
     activationData, predData = translate.main(modelPath, inputText)
 
+    # scale activations linearly so that abs(largest_activation) == 1
     norm = max(abs(value) for value in flatten(activationData))
     activations = listify(activationData, norm=norm)
 

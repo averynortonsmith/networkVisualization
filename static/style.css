@@ -3,6 +3,14 @@ body {
 	font-family: monospace;
 }
 
+textarea {
+	border: none;
+	resize: none;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+	padding: 10px;
+}
+
 /*--------------------------------------------------------------------------------*/
 
 #header {
@@ -34,14 +42,6 @@ body {
 }
 
 /*--------------------------------------------------------------------------------*/
-
-textarea {
-	border: none;
-	resize: none;
-	border: 1px solid #ccc;
-	box-sizing: border-box;
-	padding: 10px;
-}
 
 #resultsContainer {
 	position: absolute;
