@@ -25,7 +25,7 @@ SentenceValue.prototype.getComponents = function() {
         position = {this.position}
         colorer  = {this.colorer}
         key      = {this.key}
-        onClick  = {() => window.toggleSelect(this)} />);
+        onClick  = {() => getToggleSelect()(this)} />);
 };
 
 class Sentence extends React.Component {
@@ -62,7 +62,7 @@ TokenValue.prototype.getComponents = function() {
         position = {this.position}
         actVal   = {this.actVal}
         key      = {this.key}
-        onClick  = {() => window.toggleSelect(this)} />);
+        onClick  = {() => getToggleSelect()(this)} />);
 };
 
 class Token extends React.Component {
@@ -99,7 +99,7 @@ WordValue.prototype.getComponents = function() {
         string   = {this.string}
         position = {this.position}
         key      = {this.key}
-        onClick  = {() => window.toggleSelect(this)} />);
+        onClick  = {() => getToggleSelect()(this)} />);
 };
 
 class Word extends React.Component {
@@ -149,7 +149,7 @@ NeuronValue.prototype.getComponents = function() {
         positionString       = {this.positionString}
         activationComponents = {activationComponents}
         key                  = {this.key}
-        onClick              = {() => window.toggleSelect(this)} />);
+        onClick              = {() => getToggleSelect()(this)} />);
 };
 
 class Neuron extends React.Component {

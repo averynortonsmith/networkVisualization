@@ -21,7 +21,7 @@ TokenValue.prototype.colorBy = function(colorSource) {
 	}
     let [layer, ind] = colorSource.position;
     let [sen, tok]   = this.position;
-    let actVal       = window.activationsData[sen][tok][layer][ind];
+    let actVal       = getActivations()[sen][tok][layer][ind];
     let colorer      = colorSource.key
     return new TokenValue(this.word, this.position, actVal, colorer);
 };

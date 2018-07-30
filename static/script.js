@@ -1,4 +1,19 @@
 
+function stateClosure() {
+    let state;
+
+    function setState(value) {
+        state = value;
+    }
+
+    const getState = () => state;
+
+    return [getState, setState];
+}
+
+let [getToggleSelect, setToggleSelect] = stateClosure();
+let [getActivations, setActivations] = stateClosure();
+
 // --------------------------------------------------------------------------------
 
 class Container extends React.Component {
@@ -40,7 +55,7 @@ class Container extends React.Component {
             renderedComponents: [], 
             selection: [],
             selectedComponents: [],
-            query: "sentences.colorBy(neurons[0])", 
+            query: "sentences.colorBy(neurons)", 
             errorMessage: "",
             data: {},
             text: [], 
@@ -56,10 +71,11 @@ class Container extends React.Component {
                           + "A sentence is a group of words that are put together to mean something .\n\n"
                           + "A sentence is the basic unit of language which expresses a complete thought .\n\n"
                           + "It does this by following the grammatical rules of syntax .",
+                neuronsList: "(0, 0), (0, 5)",
                 classifierPath: "",
                 trainDataValue: ""},
         };
-        window.toggleSelect = this.toggleSelect
+        setToggleSelect(this.toggleSelect);
     }
 
     // show / hide the controls page
@@ -134,7 +150,7 @@ class Container extends React.Component {
             }
         }
 
-        window.activationsData = activationsData;
+        setActivations(activationsData);
 
         // factored out getting these components from the above loop
         // leads to some duplicated work, but makes more modular
@@ -143,7 +159,7 @@ class Container extends React.Component {
         let sentences = this.getSentences(textData);
 
         // get all activations for each neuron
-        let neuronsDict = activations.reduce(function(result, activation) {
+        let allNeuronsDict = activations.reduce(function(result, activation) {
             let [sen, word, layer, ind] = activation.position;
             let positionString = layer + ":" + ind;
             if (positionString in result == false) {result[positionString] = []}
@@ -151,8 +167,21 @@ class Container extends React.Component {
             return result;
         }, {});
 
+        let neuronsList = this.state.controlValues.neuronsList
+        let neuronsPairs = neuronsList.slice(1, neuronsList.length - 1)
+                                      .replace(/ /g,'')
+                                      .split("),(")
+                                      .map(pair => pair.replace(/[()]/g,'').split(",").map(Number));
+        console.log(neuronsPairs)
+        let neurons = neuronsPairs.map(function(pair) {
+            let [layer, ind] = pair;
+            let positionString = layer + ":" + ind;
+            let neuronActivations = allNeuronsDict[positionString];
+            return new NeuronValue(neuronActivations, positionString)
+        });
+
         // make neuron values for each set of activations
-        let neurons = Object.keys(neuronsDict).map(positionString => new NeuronValue(neuronsDict[positionString], positionString));
+        let allNeurons = Object.keys(allNeuronsDict).map(positionString => new NeuronValue(allNeuronsDict[positionString], positionString));
 
         let tokens = sentences.reduce(function(result, sentence) {
             let tokens = sentence.tokens;
@@ -168,7 +197,7 @@ class Container extends React.Component {
         }, {});
         let words = Object.keys(wordsDict).map(string => new WordValue(string));
         
-        this.setState({data: {activations, neurons, tokens, sentences, words}});
+        this.setState({data: {activations, allNeurons, neurons, tokens, sentences, words}});
     }
 
 
@@ -216,7 +245,7 @@ class Container extends React.Component {
 
         if (query) {
             // put values in local namespace for eval to use
-            let {neurons, tokens, sentences, words} = this.state.data;
+            let {allNeurons, neurons, tokens, sentences, words} = this.state.data;
             let selection = this.state.selection;
 
             try {
@@ -366,6 +395,7 @@ class Controls extends React.Component {
 
         // Define what happens on successful data submission
         request.addEventListener('load', function(event) {
+            this.props.setMessage("");
             if (request.status == 500) {
                 this.props.setPending(false);
                 this.props.setMessage(request.response);
@@ -412,6 +442,15 @@ class Controls extends React.Component {
                         onChange = {this.handleChange}
                         disabled = {pending}>
                     </textarea>
+                </div>
+                <div className="controlOption">
+                    <div>neuron IDs:</div>
+                    <input
+                        id       = "neuronsList"
+                        name     = "neuronsList"
+                        value    = {this.props.neuronsList}
+                        onChange = {this.handleChange}
+                        disabled = {pending}/>
                 </div>
                 <div className="controlOption">
                     <div>classifier:</div>
