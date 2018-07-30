@@ -4,7 +4,6 @@ function getObjectColor(object) {
     return {backgroundColor: color + Math.abs(object.props.actVal) ** .5 + ")"}
 }
 
-
 // --------------------------------------------------------------------------------
 
 function SentenceValue(tokens, position, colorer="") {
@@ -35,9 +34,11 @@ class Sentence extends React.Component {
 
     render() {
         return (
-            <div className="sentence">
-                <span className="sentenceName" onClick={this.props.onClick}>sentence{this.props.colorer ? " :: " + this.props.colorer : ""}</span>
-                {this.props.tokens.map(token => token.getComponents())}
+            <div>
+                <span className="sentence">
+                    <span className="sentenceName" onClick={this.props.onClick}>sentence</span>
+                    {this.props.tokens.map(token => token.getComponents())}
+                </span>
             </div>);
     }
 }
@@ -159,9 +160,10 @@ class Neuron extends React.Component {
 
     render() {
         return (
-            <div><span className="neuron" onClick={this.props.onClick}>
-                <span className="itemName">neuron</span>
-                <span className="neuronInfo">{this.props.positionString}</span>
-            </span></div>);
+            <div className="neuronDiv">
+                <span className="neuron" onClick={this.props.onClick}>
+                    <span className="itemName">neuron {this.props.positionString}</span>
+                </span>
+            </div>);
     }
 }

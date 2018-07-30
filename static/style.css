@@ -244,8 +244,9 @@ textarea {
 /*--------------------------------------------------------------------------------*/
 
 .sentence {
-	display: block;
 	margin-bottom: 10px;
+	margin-right: 10px;
+	display: inline-block;
 }
 
 .sentenceName {
@@ -276,10 +277,6 @@ textarea {
 .sentence .tokenString {
 	display: inline-block;
 	padding: 5px;
-}
-
-#results .sentence {
-	margin: -2px 0px 0px 0px;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -316,7 +313,7 @@ textarea {
 }
 
 .activation .itemName {
-	display: none;
+	display: -2none;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -327,14 +324,12 @@ textarea {
 	border: 1px solid #eee;
 	display: inline-block;
 	cursor: pointer;
+	text-align: center;
 }
 
-.neuronInfo {
-	padding: 6px 6px 6px 2px;
-	font-size: 11px;
-	min-width: 35px;
-	display: inline-block;
-	text-align: right;
+.neuron .itemName {
+	background-color: #fff;
+	margin: 0px;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -388,6 +383,6 @@ textarea {
 	padding: 6px;
 	margin: 0px 6px 0px 0px;
 	display: inline-block;
-	width: 56px;
+	min-width: 56px;
 	text-align: center;
 }
