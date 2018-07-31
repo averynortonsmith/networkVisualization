@@ -1,4 +1,10 @@
 
+/*In general, with UI design, I avoid giving things color unless that color
+is meaningful. 
+*/
+
+/*--------------------------------------------------------------------------------*/
+
 body {
 	font-family: monospace;
 }
@@ -161,7 +167,7 @@ textarea {
 	left: 0px;
 	width: 100%;
 	height: 100%;
-	background-color: rgba(255, 255, 255, 1);
+	background-color: #fff;
 	color: #222;
 	transition: opacity 300ms linear;
 }
@@ -243,18 +249,16 @@ textarea {
 
 /*--------------------------------------------------------------------------------*/
 
+.sentence, .neuron, .token, .word {
+	cursor: pointer;
+}
+
+/*--------------------------------------------------------------------------------*/
+
 .sentence {
 	margin-bottom: 10px;
 	margin-right: 10px;
 	display: inline-block;
-}
-
-.sentenceName {
-	background-color: #f4f4f4;
-	color: #777;
-	padding: 6px;
-	width: 56px;
-	cursor: pointer;
 }
 
 .sentence .tokenContainer {
@@ -263,9 +267,10 @@ textarea {
 
 .sentence .token {
 	display: inline-block;
+	padding: 1px 0px;
 }
 
-.sentence .itemName {
+.sentence .token .itemName {
 	display: none;
 }
 
@@ -281,49 +286,11 @@ textarea {
 
 /*--------------------------------------------------------------------------------*/
 
-.activation {
-	margin: 2px;
-	display: inline-block;
-	cursor: pointer;
-}
-
-.actValue {
-	border: 1px solid #ccc;
-	text-align: right;
-	padding: 0px 6px;
-	height: 20px;
-	line-height: 20px;
-	color: rgba(0, 0, 0, .2);
-	width: 50px;
-	display: inline-block;
-}
-
-.actText {
-	padding: 0px 6px 0px 6px;
-	color: #aaa;
-}
-
-.activation .wordContainer {
-	display: inline-block;
-}
-
-.activation .word {
-	padding: 2px;
-	border: none;
-}
-
-.activation .itemName {
-	display: -2none;
-}
-
-/*--------------------------------------------------------------------------------*/
-
 .neuron {
 	margin: 2px;
 	overflow: visible;
 	border: 1px solid #eee;
 	display: inline-block;
-	cursor: pointer;
 	text-align: center;
 }
 
@@ -335,15 +302,9 @@ textarea {
 /*--------------------------------------------------------------------------------*/
 
 .token {
-	cursor: pointer;
-	margin: 2px -1px 2px 0px;
+	margin: 0px -1px 4px 0px;
 	border: 1px solid #eee;
-	cursor: pointer;
 	display: inline-block;
-}
-
-.token .itemName {
-	margin: 0px;
 }
 
 .tokenString {
@@ -368,11 +329,14 @@ textarea {
 /*--------------------------------------------------------------------------------*/
 
 .word {
-	margin: 2px;
-	cursor: pointer;
+	margin: 2px 2px 2px 0px;
 	border: 1px solid #eee;
 	padding: 0px 6px 0px 0px;
 	display: inline-block;
+}
+
+.word .itemName {
+	margin-right: 6px;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -381,8 +345,37 @@ textarea {
 	background-color: #f4f4f4;
 	color: #999;
 	padding: 6px;
-	margin: 0px 6px 0px 0px;
 	display: inline-block;
 	min-width: 56px;
 	text-align: center;
+}
+
+.sentence .neuronDiv {
+	display: inline-block;
+}
+
+.sentence .neuron {
+	margin: -6px 0px;
+	padding: 0px;
+}
+
+.sentence .neuron .itemName {
+	padding: 5px 6px;
+}
+
+.sentence .token .neuron {
+	display: none;
+}
+
+.token .neuronDiv {
+	display: inline-block;
+}
+
+.token .neuron {
+	margin: -6px 0px;
+	padding: 0px;
+}
+
+.token .neuron .itemName {
+	padding: 5px 6px;
 }

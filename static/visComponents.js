@@ -1,20 +1,15 @@
 
-function getObjectColor(object) {
-    let color = object.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-    return {backgroundColor: color + Math.abs(object.props.actVal) ** .5 + ")"}
-}
-
 // --------------------------------------------------------------------------------
 
-function SentenceValue(tokens, position, colorer="") {
+function SentenceValue(tokens, position, colorer=null) {
     this.position = position;
     this.tokens   = tokens;
     this.colorer  = colorer;
-    this.key      = "Sentence " + position + " " + colorer;
+    this.key      = "Sentence " + position + (colorer ? " " + colorer.key : "");
 }
 
 SentenceValue.prototype.copy = function(neuron) {
-    return new SentenceValue(this.tokens, this.position);
+    return new SentenceValue(this.tokens.map(token => token.copy()), this.position);
 };
  
 SentenceValue.prototype.getComponents = function() {
@@ -27,6 +22,16 @@ SentenceValue.prototype.getComponents = function() {
         onClick  = {() => getToggleSelect()(this)} />);
 };
 
+SentenceValue.prototype.colorBy = function(colorer) {
+    if (colorer instanceof Array) {
+        return colorer.map(source => this.colorBy(source));
+    }
+    if (colorer instanceof NeuronValue) {
+        let newTokens = this.tokens.map(token => token.colorBy(colorer))
+        return new SentenceValue(newTokens, this.position, colorer);
+    }
+};
+
 class Sentence extends React.Component {
     constructor(props) {
         super(props);
@@ -36,7 +41,8 @@ class Sentence extends React.Component {
         return (
             <div>
                 <span className="sentence">
-                    <span className="sentenceName" onClick={this.props.onClick}>sentence</span>
+                    {this.props.colorer ? this.props.colorer.getComponents() : []}
+                    <span className="itemName" onClick={this.props.onClick}>sentence</span>
                     {this.props.tokens.map(token => token.getComponents())}
                 </span>
             </div>);
@@ -45,11 +51,11 @@ class Sentence extends React.Component {
 
 // --------------------------------------------------------------------------------
 
-function TokenValue(word, position, actVal=0, colorer="") {
+function TokenValue(word, position, colorer=null) {
     this.position = position;
     this.word     = word;
-    this.actVal   = actVal;
-    this.key      = "Token " + position + " " + colorer;
+    this.colorer  = colorer;
+    this.key      = "Token " + position + (colorer ? " " + colorer.key : "");
 }
 
 TokenValue.prototype.copy = function(neuron) {
@@ -61,20 +67,42 @@ TokenValue.prototype.getComponents = function() {
         <Token
         word     = {this.word}
         position = {this.position}
-        actVal   = {this.actVal}
+        colorer  = {this.colorer}
         key      = {this.key}
         onClick  = {() => getToggleSelect()(this)} />);
+};
+
+TokenValue.prototype.colorBy = function(colorer) {
+    if (colorer instanceof Array) {
+        return colorer.map(source => this.colorBy(source));
+    }
+    return new TokenValue(this.word, this.position, colorer);
 };
 
 class Token extends React.Component {
     constructor(props) {
         super(props);
+        this.getColorStyle = this.getColorStyle.bind(this);
+    }
+
+    getColorStyle() {
+        if (this.props.colorer instanceof NeuronValue) {
+            let [layer, ind] = this.props.colorer.position;
+            let [sen, tok]   = this.props.position;
+            // layer and ind are really strings, not ints
+            // in a sane language this would cause an error, but js doesn't care
+            let actVal = getActivations()[sen][tok][layer][ind];
+            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
+        }
+        return {};
     }
 
     render() {
         return (
             <div className="tokenContainer">
-                <span className="token" style={getObjectColor(this)}>
+                <span className="token" style={this.getColorStyle()}>
+                    {this.props.colorer ? this.props.colorer.getComponents() : []}
                     <span className="itemName" onClick={this.props.onClick}>token</span>
                     <span className="tokenString" onClick={this.props.onClick}>{this.props.word.string}</span>
                     <span className="tokenWord">{this.props.word.getComponents()}</span>
@@ -113,8 +141,7 @@ class Word extends React.Component {
             <div className="wordContainer">
                 <span
                     className = "word"
-                    onClick   = {this.props.onClick}
-                    style     = {getObjectColor(this)}>
+                    onClick   = {this.props.onClick}>
                     <span className="itemName">word</span>
                     <span>{this.props.string}</span>
                 </span>

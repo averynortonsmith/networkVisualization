@@ -15,24 +15,15 @@ Object.defineProperty(Array.prototype, 'colorBy', {
     value: function(colorSource) { return this.map(elem => elem.colorBy(colorSource)); }
 });
 
-TokenValue.prototype.colorBy = function(colorSource) {
+WordValue.prototype.colorBy = function(colorSource) {
 	if (colorSource instanceof Array) {
 		return colorSource.map(source => this.colorBy(source));
 	}
-    let [layer, ind] = colorSource.position;
-    let [sen, tok]   = this.position;
-    let actVal       = getActivations()[sen][tok][layer][ind];
-    let colorer      = colorSource.key
-    return new TokenValue(this.word, this.position, actVal, colorer);
-};
-
-SentenceValue.prototype.colorBy = function(colorSource) {
-	if (colorSource instanceof Array) {
-		return colorSource.map(source => this.colorBy(source));
+	if (colorSource instanceof NeuronValue) {
+		let newTokens = this.tokens.map(token => token.colorBy(colorSource)) 
+	    return new SentenceValue(newTokens, this.position, colorSource);
 	}
-	let newTokens = this.tokens.map(token => token.colorBy(colorSource)) 
-    let colorer   = colorSource.key
-    return new SentenceValue(newTokens, this.position, colorer);
+	return this;
 };
 
 // --------------------------------------------------------------------------------
