@@ -1,4 +1,6 @@
 
+const average = (array) => array.reduce((a, b) => a + b) / array.length;
+
 // --------------------------------------------------------------------------------
 
 Object.defineProperty(Array.prototype, 'take', {
@@ -14,17 +16,6 @@ Object.defineProperty(Array.prototype, 'reversed', {
 Object.defineProperty(Array.prototype, 'colorBy', {
     value: function(colorSource) { return this.map(elem => elem.colorBy(colorSource)); }
 });
-
-WordValue.prototype.colorBy = function(colorSource) {
-	if (colorSource instanceof Array) {
-		return colorSource.map(source => this.colorBy(source));
-	}
-	if (colorSource instanceof NeuronValue) {
-		let newTokens = this.tokens.map(token => token.colorBy(colorSource)) 
-	    return new SentenceValue(newTokens, this.position, colorSource);
-	}
-	return this;
-};
 
 // --------------------------------------------------------------------------------
 

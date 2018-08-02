@@ -113,9 +113,11 @@ class Token extends React.Component {
 
 // --------------------------------------------------------------------------------
 
-function WordValue(string) {
-    this.string = string;
-    this.key    = "Word " + string;
+function WordValue(string, averages, colorer=null) {
+    this.string   = string;
+    this.averages = averages;
+    this.colorer  = colorer;
+    this.key      = "Word " + string + (colorer ? " " + colorer.key : "");
 }
 
 WordValue.prototype.copy = function(neuron) {
@@ -126,14 +128,32 @@ WordValue.prototype.getComponents = function() {
     return (
         <Word
         string   = {this.string}
-        position = {this.position}
+        averages = {this.averages}
+        colorer  = {this.colorer}
         key      = {this.key}
         onClick  = {() => getToggleSelect()(this)} />);
+};
+
+WordValue.prototype.colorBy = function(colorer) {
+    if (colorer instanceof Array) {
+        return colorer.map(source => this.colorBy(source));
+    }
+    return new WordValue(this.string, this.averages, colorer);
 };
 
 class Word extends React.Component {
     constructor(props) {
         super(props);
+        this.getColorStyle = this.getColorStyle.bind(this);
+    }
+
+    getColorStyle() {
+        if (this.props.colorer instanceof NeuronValue) {
+            let actVal = this.props.averages[this.props.colorer.positionString];
+            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
+        }
+        return {};
     }
 
     render() {
@@ -141,7 +161,9 @@ class Word extends React.Component {
             <div className="wordContainer">
                 <span
                     className = "word"
+                    style     = {this.getColorStyle()}
                     onClick   = {this.props.onClick}>
+                    {this.props.colorer ? this.props.colorer.getComponents() : []}
                     <span className="itemName">word</span>
                     <span>{this.props.string}</span>
                 </span>
@@ -177,7 +199,9 @@ NeuronValue.prototype.getComponents = function() {
         positionString       = {this.positionString}
         activationComponents = {activationComponents}
         key                  = {this.key}
-        onClick              = {() => getToggleSelect()(this)} />);
+        onClick              = {() => getToggleSelect()(this)}
+        offHover             = {() => getOffHover()()}
+        onHover              = {() => getOnHover()(this)} />);
 };
 
 class Neuron extends React.Component {
@@ -188,7 +212,10 @@ class Neuron extends React.Component {
     render() {
         return (
             <div className="neuronDiv">
-                <span className="neuron" onClick={this.props.onClick}>
+                <span className = "neuron"
+                      onClick   = {this.props.onClick}
+                      onMouseLeave = {this.props.offHover}
+                      onMouseEnter = {this.props.onHover} >
                     <span className="itemName">neuron {this.props.positionString}</span>
                 </span>
             </div>);

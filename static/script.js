@@ -13,6 +13,8 @@ function stateClosure() {
 
 let [getToggleSelect, setToggleSelect] = stateClosure();
 let [getActivations, setActivations] = stateClosure();
+let [getOnHover, setOnHover] = stateClosure();
+let [getOffHover, setOffHover] = stateClosure();
 
 // --------------------------------------------------------------------------------
 
@@ -30,6 +32,8 @@ class Container extends React.Component {
         this.mapGetComponents  = this.mapGetComponents.bind(this);  // get react components for values in a nested list
         this.tryGetComponents  = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
         this.getSentences      = this.getSentences.bind(this);      // get sentence values from text tokens
+        this.onHover           = this.onHover.bind(this); 
+        this.offHover          = this.offHover.bind(this); 
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -51,11 +55,12 @@ class Container extends React.Component {
         //     inputText:      for backend, text to be translated / processed
 
         this.state = {
+            colorer: undefined, 
             results: [], 
             renderedComponents: [], 
             selection: [],
             selectedComponents: [],
-            query: "sentences.colorBy(neurons)", 
+            query: "sentences.colorBy(selection)", 
             errorMessage: "",
             data: {},
             text: [], 
@@ -76,6 +81,8 @@ class Container extends React.Component {
                 trainDataValue: ""},
         };
         setToggleSelect(this.toggleSelect);
+        setOnHover(this.onHover);
+        setOffHover(this.offHover);
     }
 
     // show / hide the controls page
@@ -124,6 +131,15 @@ class Container extends React.Component {
             this.setState({selection: selection});
             this.setState({selectedComponents: this.mapGetComponents(selection)});
         }
+        this.handleQueryChange(this.state.query);
+    }
+
+    onHover(colorer) {
+        this.setState({colorer}, () => this.handleQueryChange(this.state.query));
+    }
+
+    offHover() {
+        this.setState({colorer: undefined}, () => this.handleQueryChange(this.state.query));
     }
 
     // call when we get new data from backend
@@ -142,7 +158,6 @@ class Container extends React.Component {
                     for (let ind = 0; ind < activationsData[sen][word][layer].length; ind++){
                         let actVal     = activationsData[sen][word][layer][ind];
                         let position   = [sen, word, layer, ind];
-                        let string     = new WordValue(textData[sen][word]);
                         let activation = new ActivationValue(actVal, position);
                         activations.push(activation);
                     }
@@ -159,7 +174,7 @@ class Container extends React.Component {
         let sentences = this.getSentences(textData);
 
         // get all activations for each neuron
-        let allNeuronsDict = activations.reduce(function(result, activation) {
+        let neuronsDict = activations.reduce(function(result, activation) {
             let [sen, word, layer, ind] = activation.position;
             let positionString = layer + ":" + ind;
             if (positionString in result == false) {result[positionString] = []}
@@ -172,32 +187,47 @@ class Container extends React.Component {
                                       .replace(/ /g,'')
                                       .split("),(")
                                       .map(pair => pair.replace(/[()]/g,'').split(",").map(Number));
-        console.log(neuronsPairs)
-        let neurons = neuronsPairs.map(function(pair) {
+
+        let selection = neuronsPairs.map(function(pair) {
             let [layer, ind] = pair;
             let positionString = layer + ":" + ind;
-            let neuronActivations = allNeuronsDict[positionString];
+            let neuronActivations = neuronsDict[positionString];
             return new NeuronValue(neuronActivations, positionString)
         });
 
         // make neuron values for each set of activations
-        let allNeurons = Object.keys(allNeuronsDict).map(positionString => new NeuronValue(allNeuronsDict[positionString], positionString));
+        let neurons = Object.keys(neuronsDict).map(positionString => new NeuronValue(neuronsDict[positionString], positionString));
 
         let tokens = sentences.reduce(function(result, sentence) {
             let tokens = sentence.tokens;
             return result.concat(tokens);
         }, []);
 
-        // using object instead of Set because js Set interface is silly
-        let wordsDict = tokens.reduce(function(result, token) {
-            if (token.word.string in result == false) {
-                result[token.word.string] = null;
+        let wordsDict = activations.reduce(function(result, activation) {
+            let [sen, word, layer, ind] = activation.position;
+            let string = textData[sen][word];
+            if (string in result == false) {
+                result[string] = {};
             }
+            let neuronPosString = layer + ":" + ind;
+            if (neuronPosString in result[string] == false) {
+                result[string][neuronPosString] = [];
+            }
+            result[string][neuronPosString].push(activation.actVal);
             return result;
         }, {});
-        let words = Object.keys(wordsDict).map(string => new WordValue(string));
+
+        Object.keys(wordsDict).map(function(string) {
+            Object.keys(wordsDict[string]).map(function(neuronPosString) {
+                wordsDict[string][neuronPosString] = average(wordsDict[string][neuronPosString]);
+            });
+        });
+
+        let words = Object.keys(wordsDict).map(string => new WordValue(string, wordsDict[string]));
         
-        this.setState({data: {activations, allNeurons, neurons, tokens, sentences, words}});
+        this.setState({data: {activations, neurons, tokens, sentences, words}});
+        this.setState({selection: selection});
+        this.setState({selectedComponents: this.mapGetComponents(selection)});
     }
 
 
@@ -245,11 +275,12 @@ class Container extends React.Component {
 
         if (query) {
             // put values in local namespace for eval to use
-            let {allNeurons, neurons, tokens, sentences, words} = this.state.data;
+            let {neurons, tokens, sentences, words} = this.state.data;
             let selection = this.state.selection;
 
             try {
-                let results = eval(query);
+                console.log(this.state.colorer)
+                let results = this.state.colorer ? eval(query).colorBy(this.state.colorer) : eval(query);
                 
                 // map ahead of time to catch errors in mapping
                 let renderedComponents = this.mapGetComponents(results);
@@ -304,7 +335,8 @@ class Container extends React.Component {
                 (<div id="visInterface">
                     <Header 
                         text = {this.state.text}
-                        pred = {this.state.pred} />
+                        pred = {this.state.pred}
+                        colorer = {this.state.colorer} />
                     <Results 
                         renderedComponents = {this.state.renderedComponents}
                         errorMessage       = {this.state.errorMessage} />
@@ -519,8 +551,8 @@ class Header extends React.Component {
     render() {
         return (
             <div id="header">
-                <div id="source">{this.props.text.map(sentence => sentence.getComponents())}</div>
-                <div id="prediction">{this.props.pred.map(sentence => sentence.getComponents())}</div>
+                <div id="source">{this.props.colorer ? this.props.text.map(sentence => sentence.colorBy(this.props.colorer).getComponents()) : this.props.text.map(sentence => sentence.getComponents())}</div>
+                <div id="prediction">{this.props.colorer ? this.props.pred.map(sentence => sentence.colorBy(this.props.colorer).getComponents()) : this.props.pred.map(sentence => sentence.getComponents())}</div>
             </div>
         );        
     }

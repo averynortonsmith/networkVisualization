@@ -265,7 +265,7 @@ textarea {
 	display: inline-block;
 }
 
-.sentence .token {
+#results .sentence .token {
 	display: inline-block;
 	padding: 1px 0px;
 }
@@ -378,4 +378,18 @@ textarea {
 
 .token .neuron .itemName {
 	padding: 5px 6px;
+}
+
+.word .neuronDiv {
+	display: inline-block;
+}
+
+.word .neuron {
+	margin: -6px 0px;
+	padding: 0px;
+}
+
+.word .neuron .itemName {
+	padding: 5px 6px;
+	margin-right: 0px;
 }
