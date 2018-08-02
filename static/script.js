@@ -13,8 +13,6 @@ function stateClosure() {
 
 let [getToggleSelect, setToggleSelect] = stateClosure();
 let [getActivations, setActivations] = stateClosure();
-let [getOnHover, setOnHover] = stateClosure();
-let [getOffHover, setOffHover] = stateClosure();
 
 // --------------------------------------------------------------------------------
 
@@ -32,8 +30,6 @@ class Container extends React.Component {
         this.mapGetComponents  = this.mapGetComponents.bind(this);  // get react components for values in a nested list
         this.tryGetComponents  = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
         this.getSentences      = this.getSentences.bind(this);      // get sentence values from text tokens
-        this.onHover           = this.onHover.bind(this); 
-        this.offHover          = this.offHover.bind(this); 
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -81,8 +77,6 @@ class Container extends React.Component {
                 trainDataValue: ""},
         };
         setToggleSelect(this.toggleSelect);
-        setOnHover(this.onHover);
-        setOffHover(this.offHover);
     }
 
     // show / hide the controls page
@@ -131,15 +125,6 @@ class Container extends React.Component {
             this.setState({selection: selection});
             this.setState({selectedComponents: this.mapGetComponents(selection)});
         }
-        this.handleQueryChange(this.state.query);
-    }
-
-    onHover(colorer) {
-        this.setState({colorer}, () => this.handleQueryChange(this.state.query));
-    }
-
-    offHover() {
-        this.setState({colorer: undefined}, () => this.handleQueryChange(this.state.query));
     }
 
     // call when we get new data from backend
@@ -335,8 +320,7 @@ class Container extends React.Component {
                 (<div id="visInterface">
                     <Header 
                         text = {this.state.text}
-                        pred = {this.state.pred}
-                        colorer = {this.state.colorer} />
+                        pred = {this.state.pred} />
                     <Results 
                         renderedComponents = {this.state.renderedComponents}
                         errorMessage       = {this.state.errorMessage} />
@@ -551,8 +535,8 @@ class Header extends React.Component {
     render() {
         return (
             <div id="header">
-                <div id="source">{this.props.colorer ? this.props.text.map(sentence => sentence.colorBy(this.props.colorer).getComponents()) : this.props.text.map(sentence => sentence.getComponents())}</div>
-                <div id="prediction">{this.props.colorer ? this.props.pred.map(sentence => sentence.colorBy(this.props.colorer).getComponents()) : this.props.pred.map(sentence => sentence.getComponents())}</div>
+                <div id="source">{this.props.text.map(sentence => sentence.getComponents())}</div>
+                <div id="prediction">{this.props.pred.map(sentence => sentence.getComponents())}</div>
             </div>
         );        
     }

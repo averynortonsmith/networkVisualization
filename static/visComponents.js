@@ -199,9 +199,7 @@ NeuronValue.prototype.getComponents = function() {
         positionString       = {this.positionString}
         activationComponents = {activationComponents}
         key                  = {this.key}
-        onClick              = {() => getToggleSelect()(this)}
-        offHover             = {() => getOffHover()()}
-        onHover              = {() => getOnHover()(this)} />);
+        onClick              = {() => getToggleSelect()(this)} />);
 };
 
 class Neuron extends React.Component {
@@ -213,9 +211,7 @@ class Neuron extends React.Component {
         return (
             <div className="neuronDiv">
                 <span className = "neuron"
-                      onClick   = {this.props.onClick}
-                      onMouseLeave = {this.props.offHover}
-                      onMouseEnter = {this.props.onHover} >
+                      onClick   = {this.props.onClick} >
                     <span className="itemName">neuron {this.props.positionString}</span>
                 </span>
             </div>);
