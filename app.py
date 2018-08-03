@@ -25,13 +25,11 @@ def model():
     modifications = json.loads(request.form["modifications"])
     inputText = [sentence for sentence in request.form["inputText"].splitlines() if sentence]
 
-    #try:
-    activations, text, preds = getData(modelPath, inputText, modifications)
-    '''
+    try:
+        activations, text, preds = getData(modelPath, inputText, modifications)
     except Exception as err:
         # catch python exception, throw http 500 error with error message
         return str(err), 500
-    '''
 
     return jsonify([activations, text, preds])
 
