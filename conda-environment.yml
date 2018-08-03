@@ -53,11 +53,10 @@ dependencies:
     - mosestokenizer==1.0.0
     - openfile==0.0.6
     - requests==2.19.1
-    - toolwrapper==0.3.0
+    - toolwrapper==0.2.3
     - torch==0.4.0
     - torchtext==0.3.0
     - tqdm==4.23.4
     - urllib3==1.23
     - werkzeug==0.14.1
-prefix: /afs/csail.mit.edu/u/a/averyn/anaconda3/envs/test
-
+prefix: /usr/users/abau/miniconda3/envs/test

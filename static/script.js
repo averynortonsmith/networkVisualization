@@ -72,6 +72,7 @@ class Container extends React.Component {
                           + "A sentence is the basic unit of language which expresses a complete thought .\n\n"
                           + "It does this by following the grammatical rules of syntax .",
                 neuronsList: "(0, 0), (0, 5)",
+                modifications: "",
                 classifierPath: "",
                 trainDataValue: ""},
         };
@@ -393,6 +394,15 @@ class Controls extends React.Component {
         formData.append("modelPath", this.props.modelPath);
         formData.append("inputText", this.props.inputText);
 
+        // The format for modifications is as follows:
+        // token:layer:neuron:value
+        formData.append("modifications", JSON.stringify(
+            this.props.modifications.split('\n')
+            .map((line) => line.split(' ')
+            .filter((x) => x.trim().length > 0)
+            .map((x) => x.split(':').map(Number)))
+        ));
+
         // Define what happens on successful data submission
         request.addEventListener('load', function(event) {
             this.props.setMessage("");
@@ -414,7 +424,7 @@ class Controls extends React.Component {
 
         // Set up our request
         // hard-coded url to get rid of CORS error, should find better solution
-        request.open("POST", "http://nanuk.csail.mit.edu:5000/model");
+        request.open("POST", "/model");
 
         // Send our FormData object; HTTP headers are set automatically
         request.send(formData);
@@ -451,6 +461,16 @@ class Controls extends React.Component {
                         value    = {this.props.neuronsList}
                         onChange = {this.handleChange}
                         disabled = {pending}/>
+                </div>
+                <div className="controlOption">
+                    <div>Manual modifications:</div>
+                    <textarea
+                        id       = "modifications"
+                        name     = "modifications"
+                        value    = {this.props.modifications}
+                        onChange = {this.handleChange}
+                        disabled = {pending}>
+                    </textarea>
                 </div>
                 <div className="controlOption">
                     <div>classifier:</div>
