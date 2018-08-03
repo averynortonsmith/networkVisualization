@@ -1,9 +1,11 @@
 
 from flask import Flask, request, jsonify
+import json
 import sys
+import os
 
 sys.path.append("./opennmt-inspection/")
-import translate
+from online_translator import translate
 
 app = Flask(__name__)
 
@@ -20,11 +22,12 @@ def static_file(filename):
 # frontend sends requests to http://localhost:5000/model
 @app.route("/model", methods=["POST"])
 def model():
-    modelPath = "models/" + request.form["modelPath"]
+    modelPath = os.path.join('models', request.form["modelPath"])
+    modifications = json.loads(request.form["modifications"])
     inputText = [sentence for sentence in request.form["inputText"].splitlines() if sentence]
 
     try:
-        activations, text, preds = getData(modelPath, inputText)
+        activations, text, preds = getData(modelPath, inputText, modifications)
     except Exception as err:
         # catch python exception, throw http 500 error with error message
         return str(err), 500
@@ -61,15 +64,20 @@ def flatten(x):
 # modelPath: path to model in the ./models directory
 # inputText: string of input text to model
 # !!! currently, input text must already be tokenized with spaces - need to fix
-def getData(modelPath, inputText):
-    activationData, predData = translate.main(modelPath, inputText)
+def getData(modelPath, inputText, modifications):
+    print(modifications)
+
+    pred, activations = translate(
+            model=modelPath,
+            sentences=inputText,
+            modifications=modifications)
 
     # scale activations linearly so that abs(largest_activation) == 1
-    norm = max(abs(value) for value in flatten(activationData))
-    activations = listify(activationData, norm=norm)
+    norm = max(abs(value) for value in flatten(activations))
+    activations = listify(activations, norm=norm)
 
     text = [sentence.strip().split(" ") for sentence in inputText]
-    preds = [sentence.split(" ") for sentence in predData]
+    preds = [sentence.split(" ") for sentence in pred]
 
     return activations, text, preds
 

@@ -59,5 +59,3 @@ dependencies:
     - tqdm==4.23.4
     - urllib3==1.23
     - werkzeug==0.14.1
-prefix: /afs/csail.mit.edu/u/a/averyn/anaconda3/envs/test
-
