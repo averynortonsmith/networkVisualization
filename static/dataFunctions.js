@@ -1,4 +1,6 @@
 
+const average = (array) => array.reduce((a, b) => a + b) / array.length;
+
 // --------------------------------------------------------------------------------
 
 Object.defineProperty(Array.prototype, 'take', {
@@ -14,26 +16,6 @@ Object.defineProperty(Array.prototype, 'reversed', {
 Object.defineProperty(Array.prototype, 'colorBy', {
     value: function(colorSource) { return this.map(elem => elem.colorBy(colorSource)); }
 });
-
-TokenValue.prototype.colorBy = function(colorSource) {
-	if (colorSource instanceof Array) {
-		return colorSource.map(source => this.colorBy(source));
-	}
-    let [layer, ind] = colorSource.position;
-    let [sen, tok]   = this.position;
-    let actVal       = getActivations()[sen][0][tok][layer][ind]; // TODO the extra dimension here ought probably to be removed server-side
-    let colorer      = colorSource.key
-    return new TokenValue(this.word, this.position, actVal, colorer);
-};
-
-SentenceValue.prototype.colorBy = function(colorSource) {
-	if (colorSource instanceof Array) {
-		return colorSource.map(source => this.colorBy(source));
-	}
-	let newTokens = this.tokens.map(token => token.colorBy(colorSource)) 
-    let colorer   = colorSource.key
-    return new SentenceValue(newTokens, this.position, colorer);
-};
 
 // --------------------------------------------------------------------------------
 
