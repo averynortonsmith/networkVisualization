@@ -13,6 +13,7 @@ function stateClosure() {
 
 let [getToggleSelect, setToggleSelect] = stateClosure();
 let [getActivations, setActivations] = stateClosure();
+let clearSelection;
 
 // --------------------------------------------------------------------------------
 
@@ -51,7 +52,6 @@ class Container extends React.Component {
         //     inputText:      for backend, text to be translated / processed
 
         this.state = {
-            colorer: undefined, 
             results: [], 
             renderedComponents: [], 
             selection: [],
@@ -77,6 +77,11 @@ class Container extends React.Component {
                 trainDataValue: ""},
         };
         setToggleSelect(this.toggleSelect);
+        clearSelection = (function() {
+            this.setState({selection: []});
+            this.setState({selectedComponents: []});
+            return null;
+        }).bind(this);
     }
 
     // show / hide the controls page
@@ -107,7 +112,22 @@ class Container extends React.Component {
     }
 
     // select / deselect data components
-    toggleSelect(original) {
+    toggleSelect(original, addOnly=false) {
+
+        let selection;
+
+        if (original instanceof Array) {
+            selection = original.reduce((result, value) => this.processToggle(result, value, addOnly), this.state.selection);
+        }
+        else {
+            selection = this.processToggle(this.state.selection, original, addOnly);
+        }
+
+        this.setState({selection: selection});
+        this.setState({selectedComponents: this.mapGetComponents(selection)});
+    }
+
+    processToggle(selection, original, addOnly) {
         // copy to remove activation highlighting
         let value = original.copy();
 
@@ -115,15 +135,11 @@ class Container extends React.Component {
         // element keys must be unique
         // selection should always contain renderable objects, 
         // so mapGetComponents should never throw an error
-        if (this.state.selection.map(value => value.key).indexOf(value.key) > -1) {
-            let selection = this.state.selection.filter(other => other.key != value.key);
-            this.setState({selection: selection});
-            this.setState({selectedComponents: this.mapGetComponents(selection)});
+        if (selection.map(value => value.key).indexOf(value.key) == -1) {
+            return selection.concat([value])
         }
-        else {
-            let selection = this.state.selection.concat([value])
-            this.setState({selection: selection});
-            this.setState({selectedComponents: this.mapGetComponents(selection)});
+        else if (!addOnly) {
+            return selection.filter(other => other.key != value.key);
         }
     }
 
@@ -262,13 +278,19 @@ class Container extends React.Component {
             // put values in local namespace for eval to use
             let {neurons, tokens, sentences, words} = this.state.data;
             let selection = this.state.selection;
+            let results = this.state.results;
 
             try {
-                console.log(this.state.colorer)
-                let results = this.state.colorer ? eval(query).colorBy(this.state.colorer) : eval(query);
+                let results = eval(query);
+
+                if (results === null) {
+                    this.setState({errorMessage: ""});
+                    return;
+                }
                 
                 // map ahead of time to catch errors in mapping
                 let renderedComponents = this.mapGetComponents(results);
+
                 this.setState({results: results});
                 this.setState({renderedComponents: renderedComponents});
                 this.setState({errorMessage: ""});
@@ -276,6 +298,7 @@ class Container extends React.Component {
             catch (err) {
                 let errorMessage = err.name + ":\n" + err.message;
                 this.setState({errorMessage: errorMessage});
+                console.log(err);
             }
         }
         else {

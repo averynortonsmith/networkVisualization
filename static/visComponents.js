@@ -22,12 +22,16 @@ SentenceValue.prototype.getComponents = function() {
         onClick  = {() => getToggleSelect()(this)} />);
 };
 
-SentenceValue.prototype.colorBy = function(colorer) {
+SentenceValue.prototype.colorAverage = function(colorer) {
+    return this.colorBy(colorer, true);
+};
+
+SentenceValue.prototype.colorBy = function(colorer, average=false) {
     if (colorer instanceof Array) {
-        return colorer.map(source => this.colorBy(source));
+        return colorer.map(source => this.colorBy(source, average));
     }
     if (colorer instanceof NeuronValue) {
-        let newTokens = this.tokens.map(token => token.colorBy(colorer))
+        let newTokens = this.tokens.map(token => token.colorBy(colorer, average))
         return new SentenceValue(newTokens, this.position, colorer);
     }
 };
@@ -72,8 +76,12 @@ TokenValue.prototype.getComponents = function() {
         onClick  = {() => getToggleSelect()(this)} />);
 };
 
-TokenValue.prototype.colorBy = function(colorer) {
-    if (colorer instanceof Array) {
+TokenValue.prototype.colorAverage = function(colorer) {
+    return this.colorBy(colorer, true);
+};
+
+TokenValue.prototype.colorBy = function(colorer, average=false) {
+    if (colorer instanceof Array && !average) {
         return colorer.map(source => this.colorBy(source));
     }
     return new TokenValue(this.word, this.position, colorer);
@@ -95,6 +103,15 @@ class Token extends React.Component {
             let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
             return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
         }
+        if (this.props.colorer instanceof Array) {
+            let actVal = average(this.props.colorer.map((function(colorer) {
+                let [layer, ind] = colorer.position;
+                let [sen, tok]   = this.props.position;
+                return getActivations()[sen][tok][layer][ind];
+            }).bind(this)));
+            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
+        }
         return {};
     }
 
@@ -102,7 +119,7 @@ class Token extends React.Component {
         return (
             <div className="tokenContainer">
                 <span className="token" style={this.getColorStyle()}>
-                    {this.props.colorer ? this.props.colorer.getComponents() : []}
+                    {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
                     <span className="itemName" onClick={this.props.onClick}>token</span>
                     <span className="tokenString" onClick={this.props.onClick}>{this.props.word.string}</span>
                     <span className="tokenWord">{this.props.word.getComponents()}</span>
@@ -134,8 +151,12 @@ WordValue.prototype.getComponents = function() {
         onClick  = {() => getToggleSelect()(this)} />);
 };
 
-WordValue.prototype.colorBy = function(colorer) {
-    if (colorer instanceof Array) {
+WordValue.prototype.colorAverage = function(colorer) {
+    return this.colorBy(colorer, true);
+};
+
+WordValue.prototype.colorBy = function(colorer, average=false) {
+    if (colorer instanceof Array && !average) {
         return colorer.map(source => this.colorBy(source));
     }
     return new WordValue(this.string, this.averages, colorer);
@@ -153,6 +174,11 @@ class Word extends React.Component {
             let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
             return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
         }
+        if (this.props.colorer instanceof Array) {
+            let actVal = average(this.props.colorer.map(colorer => this.props.averages[colorer.positionString]));
+            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
+        }
         return {};
     }
 
@@ -163,7 +189,7 @@ class Word extends React.Component {
                     className = "word"
                     style     = {this.getColorStyle()}
                     onClick   = {this.props.onClick}>
-                    {this.props.colorer ? this.props.colorer.getComponents() : []}
+                    {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
                     <span className="itemName">word</span>
                     <span>{this.props.string}</span>
                 </span>
