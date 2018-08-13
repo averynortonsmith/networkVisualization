@@ -19,18 +19,19 @@ let [getActivations, setActivations] = stateClosure();
 class Container extends React.Component {
     constructor(props) {
         super(props);
-        this.handleQueryChange = this.handleQueryChange.bind(this); // update results for new valid query
-        this.processData       = this.processData.bind(this);       // call when we get new data from backend
-        this.toggleSelect      = this.toggleSelect.bind(this);      // select / deselect data components
-        this.toggleControls    = this.toggleControls.bind(this);    // show / hide the controls page
-        this.handleInputChange = this.handleInputChange.bind(this); // handle field changes on controls page
-        this.handleResponse    = this.handleResponse.bind(this);    // process response from backend
-        this.setPending        = this.setPending.bind(this);        // are we waiting for response from backend
-        this.setMessage        = this.setMessage.bind(this);        // display error message on controls page
-        this.mapGetComponents  = this.mapGetComponents.bind(this);  // get react components for values in a nested list
-        this.tryGetComponents  = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
-        this.getSentences      = this.getSentences.bind(this);      // get sentence values from text tokens
-        this.clearSelection    = this.clearSelection.bind(this);    // clear the selection variable, available in console
+        this.handleQueryChange  = this.handleQueryChange.bind(this); // update results for new valid query
+        this.processData        = this.processData.bind(this);       // call when we get new data from backend
+        this.toggleSelect       = this.toggleSelect.bind(this);      // select / deselect data components
+        this.toggleControls     = this.toggleControls.bind(this);    // show / hide the controls page
+        this.handleInputChange  = this.handleInputChange.bind(this); // handle field changes on controls page
+        this.handleResponse     = this.handleResponse.bind(this);    // process response from backend
+        this.setPending         = this.setPending.bind(this);        // are we waiting for response from backend
+        this.setMessage         = this.setMessage.bind(this);        // display error message on controls page
+        this.mapGetComponents   = this.mapGetComponents.bind(this);  // get react components for values in a nested list
+        this.tryGetComponents   = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
+        this.getSentences       = this.getSentences.bind(this);      // get sentence values from text tokens
+        this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
+        this.increaseNumVisible = this.increaseNumVisible.bind(this); 
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -54,6 +55,7 @@ class Container extends React.Component {
         this.state = {
             results: [], 
             renderedComponents: [], 
+            numVisible: 50, 
             selection: [],
             selectedComponents: [],
             query: "sentences.colorBy(selection)", 
@@ -229,8 +231,15 @@ class Container extends React.Component {
 
 
     // get react components for values in a nested list
-    mapGetComponents(values) {
-        return values instanceof Array ? values.map(this.mapGetComponents) : this.tryGetComponents(values);
+    * mapGetComponents(values) {
+        if (values instanceof Array) {
+            for (let value of values) {
+                yield* this.mapGetComponents(value) 
+            }
+        }
+        else {
+            yield this.tryGetComponents(values);
+        }
     }
 
     tryGetComponents(value) {
@@ -243,7 +252,6 @@ class Container extends React.Component {
         }
         if (value instanceof Array == false) {
             let errorMessage = typeof value;
-            console.log(value);
             throw {name: "Cannot Render Type", message: errorMessage};
         }
         return value;
@@ -276,6 +284,10 @@ class Container extends React.Component {
         return null;
     }
 
+    increaseNumVisible() {
+        this.setState({numVisible: this.state.numVisible + 25}, () => this.handleQueryChange(this.state.query));
+    }
+
     // update results for new valid query
     handleQueryChange(query) {
         this.setState({query});
@@ -298,12 +310,12 @@ class Container extends React.Component {
                     this.setState({errorMessage: ""});
                     return;
                 }
-
+                
                 // map ahead of time to catch errors in mapping
-                let renderedComponents = this.mapGetComponents(Array.from(results));
+                let renderedComponents = this.mapGetComponents(results).take(this.state.numVisible);
 
                 this.setState({results: results});
-                this.setState({renderedComponents: renderedComponents});
+                this.setState({renderedComponents: Array.from(renderedComponents)});
                 this.setState({errorMessage: ""});
             }
             catch (err) {
@@ -357,7 +369,8 @@ class Container extends React.Component {
                         pred = {this.state.pred} />
                     <Results 
                         renderedComponents = {this.state.renderedComponents}
-                        errorMessage       = {this.state.errorMessage} />
+                        errorMessage       = {this.state.errorMessage}
+                        increaseNumVisible = {this.increaseNumVisible} />
                     <SideBar
                         selectedComponents = {this.state.selectedComponents}
                         toggleControls     = {this.toggleControls} />
@@ -382,7 +395,10 @@ class Results extends React.Component {
         let [errName, errText] = this.props.errorMessage.split("\n");
         return (
             <div id="resultsContainer" className={this.props.errorMessage ? "error" : ""}>
-                <ResultsList renderedComponents={this.props.renderedComponents} shouldUpdate={this.props.errorMessage == ""} />
+                <ResultsList
+                    renderedComponents = {this.props.renderedComponents}
+                    shouldUpdate       = {this.props.errorMessage == ""} 
+                    increaseNumVisible = {this.props.increaseNumVisible} />
                 <div id="errorMessage">
                     <div>{errName}</div>
                     <div>{errText}</div>
@@ -395,16 +411,28 @@ class Results extends React.Component {
 class ResultsList extends React.Component {
     constructor(props) {
         super(props);
+        this.handleScroll = this.handleScroll.bind(this);
+        this.state = {increasedNum: false};
     }
 
     // don't re-render results list for invalid query
     shouldComponentUpdate(nextProps, nextState) {
-        return nextProps.shouldUpdate;
+        let update = nextProps.shouldUpdate || this.state.increasedNum;
+        this.setState({increasedNum: false})
+        return update;
+    }
+
+    handleScroll(e) {
+        let bottomOffset = e.target.scrollHeight - e.target.scrollTop - e.target.clientHeight;
+        if (bottomOffset < 300){
+            this.setState({increasedNum: true});
+            this.props.increaseNumVisible();
+        }
     }
 
     render() {
         return (
-            <div id="results">
+            <div id="results" onScroll={this.handleScroll}>
                 {this.props.renderedComponents}
             </div>
         );        
