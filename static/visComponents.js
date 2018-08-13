@@ -99,8 +99,7 @@ class Token extends React.Component {
             let [sen, tok]   = this.props.position;
             // layer and ind are really strings, not ints
             // in a sane language this would cause an error, but js doesn't care
-            let actVal = getActivations()[sen][tok][layer][ind]; // TODO the extra dimension here should
-                                                                    // probably be removed server-side
+            let actVal = getActivations()[sen][tok][layer][ind];
             let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
             return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
         }

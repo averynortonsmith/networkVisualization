@@ -147,8 +147,6 @@ class Container extends React.Component {
 
         // load input text and prediction text into interface
         this.setState({text, pred});
-
-        console.log(activationsData)
         
         let activations = [];
         for (let sen = 0; sen < activationsData.length; sen++){
@@ -236,12 +234,16 @@ class Container extends React.Component {
     }
 
     tryGetComponents(value) {
+        // only render values, nested arrays of values, and numbers for now
         if (value.getComponents) {
             return value.getComponents();
         }
-        // only render values and nested arrays of values (might allow maps in the future as well)
+        if (isNaN(value) == false) {
+            return value;
+        }
         if (value instanceof Array == false) {
             let errorMessage = typeof value;
+            console.log(value);
             throw {name: "Cannot Render Type", message: errorMessage};
         }
         return value;
@@ -296,9 +298,9 @@ class Container extends React.Component {
                     this.setState({errorMessage: ""});
                     return;
                 }
-                
+
                 // map ahead of time to catch errors in mapping
-                let renderedComponents = this.mapGetComponents(results);
+                let renderedComponents = this.mapGetComponents(Array.from(results));
 
                 this.setState({results: results});
                 this.setState({renderedComponents: renderedComponents});
