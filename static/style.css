@@ -194,6 +194,8 @@ textarea {
 	display: block;
 	margin: 2px 0px;
 	box-sizing: border-box;
+	font-family: monospace;
+	font-size: 12px;
 }
 
 .controlOption textarea {

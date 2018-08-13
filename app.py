@@ -69,11 +69,16 @@ def flatten(x):
 def getData(modelPath, inputText, modifications):
     print(modifications)
 
-    pred, activations = translate(
+    pred, rawActivations = translate(
         model         = modelPath,
         sentences     = inputText,
         modifications = modifications
     )
+
+    # get rid of second dimension
+    # to keep format activations[sentence][token][layer][neuron]
+    # instead of activations[sentence][0][token][layer][neuron]
+    activations = [act[0] for act in rawActivations]
 
     # scale activations linearly so that abs(largest_activation) == 1
     norm = max(abs(value) for value in flatten(activations))

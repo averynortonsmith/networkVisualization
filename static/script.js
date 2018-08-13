@@ -147,6 +147,8 @@ class Container extends React.Component {
 
         // load input text and prediction text into interface
         this.setState({text, pred});
+
+        console.log(activationsData)
         
         let activations = [];
         for (let sen = 0; sen < activationsData.length; sen++){
@@ -284,7 +286,7 @@ class Container extends React.Component {
             let sentences      = this.state.data.sentences.slice();
             let words          = this.state.data.words.slice();
             let selection      = this.state.selection.slice();
-            let results        = this.state.results.slice();
+            let results        = results instanceof Array ? this.state.results.slice() : this.state.results;
             let clearSelection = this.clearSelection;
 
             try {
@@ -439,13 +441,20 @@ class Controls extends React.Component {
         formData.append("modelPath", this.props.modelPath);
         formData.append("inputText", this.props.inputText);
 
-        // The format for modifications is as follows:
-        // token:layer:neuron:value
+        let numLines = this.props.inputText.split("\n").filter(x => x).length;
+        let sentenceMods = Array(numLines).fill(null).map(() => []);
+
+        // The format for modifications is as follows,
+        // with one modification per line:
+        // [sentence, token, layer, neuron, value]
         formData.append("modifications", JSON.stringify(
-            this.props.modifications.split('\n')
-            .map((line) => line.split(' ')
-            .filter((x) => x.trim().length > 0)
-            .map((x) => x.split(':').map(Number)))
+            this.props.modifications.split("\n")
+            .filter(x => x)
+            .map(JSON.parse)
+            .reduce(function(result, [sentence, ...modData]) {
+                result[sentence].push(modData);
+                return result;
+            }, sentenceMods)
         ));
 
         // Define what happens on successful data submission
