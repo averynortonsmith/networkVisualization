@@ -1,0 +1,3 @@
+[submodule "opennmt-inspection"]
+	path = opennmt-inspection
+	url = https://github.com/dabbler0/opennmt-inspection.git

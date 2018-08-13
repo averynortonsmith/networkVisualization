@@ -278,6 +278,7 @@ class Container extends React.Component {
 
         if (query) {
             // put values in local namespace for eval to use
+            // slice array values to copy, so that user can't mutate by accident
             let neurons        = this.state.data.neurons.slice();
             let tokens         = this.state.data.tokens.slice();
             let sentences      = this.state.data.sentences.slice();
