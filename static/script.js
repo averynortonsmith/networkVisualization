@@ -278,9 +278,12 @@ class Container extends React.Component {
 
         if (query) {
             // put values in local namespace for eval to use
-            let {neurons, tokens, sentences, words} = this.state.data;
-            let selection = this.state.selection;
-            let results = this.state.results;
+            let neurons        = this.state.data.neurons.slice();
+            let tokens         = this.state.data.tokens.slice();
+            let sentences      = this.state.data.sentences.slice();
+            let words          = this.state.data.words.slice();
+            let selection      = this.state.selection.slice();
+            let results        = this.state.results.slice();
             let clearSelection = this.clearSelection;
 
             try {

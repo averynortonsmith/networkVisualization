@@ -3,6 +3,7 @@ from flask import Flask, request, jsonify
 import json
 import sys
 import os
+import traceback
 
 sys.path.append("./opennmt-inspection/")
 from online_translator import translate
@@ -30,7 +31,7 @@ def model():
         activations, text, preds = getData(modelPath, inputText, modifications)
     except Exception as err:
         # catch python exception, throw http 500 error with error message
-        print("SERVER ERROR: ", err)
+        print(traceback.format_exc())
         return str(err), 500
 
     return jsonify([activations, text, preds])
@@ -69,9 +70,10 @@ def getData(modelPath, inputText, modifications):
     print(modifications)
 
     pred, activations = translate(
-            model=modelPath,
-            sentences=inputText,
-            modifications=modifications)
+        model         = modelPath,
+        sentences     = inputText,
+        modifications = modifications
+    )
 
     # scale activations linearly so that abs(largest_activation) == 1
     norm = max(abs(value) for value in flatten(activations))
