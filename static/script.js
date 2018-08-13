@@ -13,7 +13,6 @@ function stateClosure() {
 
 let [getToggleSelect, setToggleSelect] = stateClosure();
 let [getActivations, setActivations] = stateClosure();
-let clearSelection;
 
 // --------------------------------------------------------------------------------
 
@@ -31,6 +30,7 @@ class Container extends React.Component {
         this.mapGetComponents  = this.mapGetComponents.bind(this);  // get react components for values in a nested list
         this.tryGetComponents  = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
         this.getSentences      = this.getSentences.bind(this);      // get sentence values from text tokens
+        this.clearSelection    = this.clearSelection.bind(this);    // clear the selection variable, available in console
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -78,11 +78,6 @@ class Container extends React.Component {
                 trainDataValue: ""},
         };
         setToggleSelect(this.toggleSelect);
-        clearSelection = (function() {
-            this.setState({selection: []});
-            this.setState({selectedComponents: []});
-            return null;
-        }).bind(this);
     }
 
     // show / hide the controls page
@@ -270,6 +265,12 @@ class Container extends React.Component {
         return output;
     }
 
+    // clear the selection variable, available in console
+    clearSelection() {
+        this.setState({selection: []});
+        this.setState({selectedComponents: []});
+        return null;
+    }
 
     // update results for new valid query
     handleQueryChange(query) {
@@ -280,6 +281,7 @@ class Container extends React.Component {
             let {neurons, tokens, sentences, words} = this.state.data;
             let selection = this.state.selection;
             let results = this.state.results;
+            let clearSelection = this.clearSelection;
 
             try {
                 let results = eval(query);

@@ -30,6 +30,7 @@ def model():
         activations, text, preds = getData(modelPath, inputText, modifications)
     except Exception as err:
         # catch python exception, throw http 500 error with error message
+        print("SERVER ERROR: ", err)
         return str(err), 500
 
     return jsonify([activations, text, preds])
