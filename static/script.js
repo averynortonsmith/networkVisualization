@@ -14,6 +14,11 @@ function stateClosure() {
 let [getToggleSelect, setToggleSelect] = stateClosure();
 let [getActivations, setActivations] = stateClosure();
 
+function select(value) {
+    getToggleSelect()(value, true);
+    return null;
+}
+
 // --------------------------------------------------------------------------------
 
 class Container extends React.Component {
@@ -32,6 +37,7 @@ class Container extends React.Component {
         this.getSentences       = this.getSentences.bind(this);      // get sentence values from text tokens
         this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
         this.increaseNumVisible = this.increaseNumVisible.bind(this); 
+        this.getTestData        = this.getTestData.bind(this); 
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -80,6 +86,46 @@ class Container extends React.Component {
                 trainDataValue: ""},
         };
         setToggleSelect(this.toggleSelect);
+    }
+
+    componentDidMount() {
+        if (new URL(document.location).searchParams.get("debug") == "testData") {
+            this.setState({showControls: true});
+            this.getTestData();
+        }
+    }
+
+    getTestData() {
+        // clear error message from last request, if there was one
+        this.setMessage("");
+        this.setPending(true);
+
+        var request = new XMLHttpRequest();
+        var formData = new FormData();
+
+        // Define what happens on successful data submission
+        request.addEventListener('load', function(event) {
+            this.setMessage("");
+            if (request.status == 500) {
+                this.setPending(false);
+                this.setMessage(request.response);
+            }
+            else {
+                this.setPending(false);
+                this.handleResponse(request.response);
+            }
+        }.bind(this));
+
+        // Define what happens in case of error
+        request.addEventListener("error", function(event) {
+            this.setPending(false);
+            this.setMessage("server unreachable");
+        }.bind(this));
+
+        request.open("POST", "/testData");
+
+        // Send our FormData object; HTTP headers are set automatically
+        request.send(formData);
     }
 
     // show / hide the controls page
@@ -512,7 +558,6 @@ class Controls extends React.Component {
         }.bind(this));
 
         // Set up our request
-        // hard-coded url to get rid of CORS error, should find better solution
         request.open("POST", "/model");
 
         // Send our FormData object; HTTP headers are set automatically

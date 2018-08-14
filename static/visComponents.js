@@ -217,11 +217,12 @@ function ActivationValue(actVal, position) {
 
 // --------------------------------------------------------------------------------
 
-function NeuronValue(activations, positionString) {
+function NeuronValue(activations, positionString, colorer=null) {
     this.positionString = positionString;
     this.position       = positionString.split(":");
     this.activations    = activations;
-    this.key            = "Neuron " + positionString
+    this.colorer        = colorer;
+    this.key            = "Neuron " + positionString + (colorer ? " " + colorer.key : "");
 }
 
 NeuronValue.prototype.copy = function(neuron) {
@@ -229,18 +230,37 @@ NeuronValue.prototype.copy = function(neuron) {
 };
  
 NeuronValue.prototype.getComponents = function() {
-    let activationComponents = this.activations;
     return (
         <Neuron
-        positionString       = {this.positionString}
-        activationComponents = {activationComponents}
-        key                  = {this.key}
-        onClick              = {() => getToggleSelect()(this)} />);
+        positionString = {this.positionString}
+        activations    = {this.activations}
+        colorer        = {this.colorer}
+        key            = {this.key}
+        onClick        = {() => getToggleSelect()(this)} />);
 };
+
+NeuronValue.prototype.colorBy = function(colorer) {
+    if (colorer instanceof Array) {
+        return colorer.map(source => this.colorBy(source));
+    }
+    return new NeuronValue(this.activations, this.positionString, colorer);
+};
+
 
 class Neuron extends React.Component {
     constructor(props) {
         super(props);
+    }
+
+    getColorStyle() {
+        if (this.props.colorer instanceof NeuronValue) {
+            let thisVals  = this.props.activations.map(act => act.actVal);
+            let otherVals = this.props.colorer.activations.map(act => act.actVal);
+            let actVal    = correlation(thisVals, otherVals);
+            let color     = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+            return [actVal, {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"}];
+        }
+        return [0, {}];
     }
 
     shouldComponentUpdate() {
@@ -248,11 +268,18 @@ class Neuron extends React.Component {
     }
 
     render() {
+        let [actVal, colorStyle] = this.getColorStyle();
+        let alignmentSpace = actVal >= 0 ? "\u00A0" : ""
         return (
             <div className="neuronDiv">
                 <span className = "neuron"
-                      onClick   = {this.props.onClick} >
-                    <span className="itemName">neuron {this.props.positionString}</span>
+                      style     = {colorStyle} >
+                      {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
+                      {this.props.colorer instanceof NeuronValue ? <span className="corrVal">{alignmentSpace}{parseFloat(actVal).toFixed(3)}</span> : ""}
+                    <span className = "itemName"
+                          onClick   = {this.props.onClick} >
+                          neuron {this.props.positionString}
+                    </span>
                 </span>
             </div>);
     }

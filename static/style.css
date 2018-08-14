@@ -292,22 +292,22 @@ textarea {
 /*--------------------------------------------------------------------------------*/
 
 .neuron {
-	margin: 2px;
+	margin: 2px 0px;
 	overflow: visible;
-	border: 1px solid #eee;
 	display: inline-block;
 	text-align: center;
 }
 
 .neuron .itemName {
-	background-color: #fff;
 	margin: 0px;
+	background-color: #fff;
+	border: 1px solid #eee;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .token {
-	margin: 0px -1px 4px 0px;
+	margin: 2px -1px 2px 0px;
 	border: 1px solid #eee;
 	display: inline-block;
 }
@@ -397,4 +397,18 @@ textarea {
 .word .neuron .itemName {
 	padding: 5px 6px;
 	margin-right: 0px;
+}
+
+.neuron .neuronDiv {
+	display: inline-block;
+}
+
+.neuron .neuron {
+	margin: -6px 0px;
+	padding: 0px;
+}
+
+.neuron .corrVal {
+	margin: 0px 6px;
+	display: inline-block;
 }

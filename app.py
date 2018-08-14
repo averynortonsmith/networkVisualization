@@ -36,10 +36,16 @@ def model():
 
     return jsonify([activations, text, preds])
 
+@app.route("/testData", methods=["POST"])
+def testData():
+    with open("testData.json", "r") as file:
+        data = json.loads(file.read())
+
+    return jsonify(data)
+
 # --------------------------------------------------------------------------------
 
 import torch
-import json
 
 # adapted from anthony's code
 # normalize a nested list of values

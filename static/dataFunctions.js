@@ -1,12 +1,18 @@
 
-const average = (array) => array.reduce((a, b) => a + b) / array.length;
+// and for my next trick, I will re-implement all of Haskell in ES6
+const average = array => array.reduce((a, b) => a + b) / array.length;
+const range = n => [...Array(n).keys()];
+const sum = array => array.reduce((a, b) => a + b, 0)
 
-// https://stackoverflow.com/questions/10865025/merge-flatten-an-array-of-arrays-in-javascript
-function flatten(arr) {
-    return arr.reduce(function (flat, toFlatten) {
-        return flat.concat(Array.isArray(toFlatten) ? flatten(toFlatten) : toFlatten);
-    }, []);
+function correlation(a, b) {
+    let avgA = average(a);
+    let avgB = average(b);
+    let rmsA = Math.sqrt(sum(a.map(x => (x - avgA) ** 2)))
+    let rmsB = Math.sqrt(sum(b.map(x => (x - avgB) ** 2)))
+    return sum(range(a.length).map(i => (a[i] - avgA) * (b[i] - avgB))) / rmsA / rmsB;
 }
+
+// --------------------------------------------------------------------------------
 
 Object.defineProperty(Object.prototype, "take", {
     value: function*(n) {
@@ -47,9 +53,3 @@ SentenceValue.prototype.getTokens = function() {
 TokenValue.prototype.getWord = function() {
     return this.word;
 };
-
-function select(value) {
-    getToggleSelect()(value, true);
-    return null;
-}
-
