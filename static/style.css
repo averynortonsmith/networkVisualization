@@ -6,409 +6,425 @@ is meaningful.
 /*--------------------------------------------------------------------------------*/
 
 body {
-	font-family: monospace;
+    font-family: monospace;
 }
 
 textarea {
-	border: none;
-	resize: none;
-	border: 1px solid #ccc;
-	box-sizing: border-box;
-	padding: 10px;
+    border: none;
+    resize: none;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    padding: 10px;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 #header {
-	position: absolute;
-	left: 0px;
-	top: 0px;
-	width: calc(100% - 340px);
-	height: 240px;
-	padding: 10px;
-	box-sizing: border-box;
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    width: calc(100% - 340px);
+    height: 240px;
+    padding: 10px;
+    box-sizing: border-box;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 #source, #prediction {
-	border: 1px solid #ccc;
-	box-sizing: border-box;
-	padding: 10px;
-	height: 100%;
-	width: calc(50% - 5px);
-	word-wrap: break-word;
-	overflow: auto;
-	display: inline-block;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    padding: 10px;
+    height: 100%;
+    width: calc(50% - 5px);
+    word-wrap: break-word;
+    overflow: auto;
+    display: inline-block;
 }
 
 
 #source {
-	margin-right: 10px;
+    margin-right: 10px;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 #resultsContainer {
-	position: absolute;
-	left: 0px;
-	top: 240px;
-	bottom: 120px;
-	width: calc(100% - 340px);
-	box-sizing: border-box;
-	padding: 0px 10px;
-	white-space: nowrap;
+    position: absolute;
+    left: 0px;
+    top: 240px;
+    bottom: 120px;
+    width: calc(100% - 340px);
+    box-sizing: border-box;
+    padding: 0px 10px;
+    white-space: nowrap;
 }
 
 #resultsContainer #results {
-	border: 1px solid #ccc;
-	padding: 10px;
-	height: 100%;
-	box-sizing: border-box;
-	position: relative;
-	overflow: auto;
+    border: 1px solid #ccc;
+    padding: 10px;
+    height: 100%;
+    box-sizing: border-box;
+    position: relative;
+    overflow: auto;
 }
 
 #resultsContainer.error #results {
-	height: calc(100% - 80px);
+    height: calc(100% - 80px);
 }
 
 #errorMessage {
-	position: absolute;
-	bottom: 0px;
-	left: 10px;
-	right: 10px;
-	padding: 20px;
-	height: 70px;
-	background-color: #ff6666;
-	color: #fff;
-	font-weight: bold;
-	box-sizing: border-box;
-	visibility: hidden;
-	opacity: 0;
-	transition: opacity 100ms linear;
+    position: absolute;
+    bottom: 0px;
+    left: 10px;
+    right: 10px;
+    padding: 20px;
+    height: 70px;
+    background-color: #ff6666;
+    color: #fff;
+    font-weight: bold;
+    box-sizing: border-box;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 100ms linear;
 }
 
 #resultsContainer.error #errorMessage {
-	visibility: visible;
-	opacity: 1;
+    visibility: visible;
+    opacity: 1;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 #sidebar {
-	position: absolute;
-	right: 0px;
-	top: 0px;
-	width: 340px;
-	height: 100%;
-	padding: 10px 10px 10px 0px;
-	box-sizing: border-box;
+    position: absolute;
+    right: 0px;
+    top: 0px;
+    width: 340px;
+    height: 100%;
+    padding: 10px 10px 10px 0px;
+    box-sizing: border-box;
 }
 
 #inlineControls {
-	height: 184px;
-	border: 1px solid #ccc;
-	box-sizing: border-box;
+    height: 184px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    overflow-y: scroll;
+}
+
+#inlineControls div {
+    padding: 6px 8px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    box-sizing: border-box;
+    transition: background-color 100ms linear;
+}
+
+#inlineControls div i {
+    color: #aaa;
+}
+
+#inlineControls div:hover {
+    background-color: #eee;
 }
 
 #changeInput {
-	color: #444;
-	padding: 8px 14px;
-	margin-bottom: 6px;
-	cursor: pointer;
-	text-align: center;
-	background-color: #eee;
-	transition: background-color 100ms linear;
-	height: 30px;
-	border: 1px solid #ddd;
-	box-sizing: border-box;
+    color: #444;
+    padding: 8px 14px;
+    margin-bottom: 6px;
+    cursor: pointer;
+    text-align: center;
+    background-color: #eee;
+    transition: background-color 100ms linear;
+    height: 30px;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
 }
 
 #changeInput:hover {
-	background-color: #d4d4d4;
+    background-color: #d4d4d4;
 }
 
 #values {
-	height: calc(100% - 229px);
-	border: 1px solid #ccc;	
-	margin-top: 10px;
-	padding: 10px;
-	box-sizing: border-box;
-	overflow-y: auto;
+    height: calc(100% - 229px);
+    border: 1px solid #ccc; 
+    margin-top: 10px;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 #footer {
-	position: absolute;
-	left: 0px;
-	bottom: 0px;
-	width: calc(100% - 340px);
-	height: 120px;
-	box-sizing: border-box;
-	padding: 10px;
+    position: absolute;
+    left: 0px;
+    bottom: 0px;
+    width: calc(100% - 340px);
+    height: 120px;
+    box-sizing: border-box;
+    padding: 10px;
 }
 
 #footer #query {
-	height: 100%;
-	width: 100%;
-	transition: border-color 200ms linear;
+    height: 100%;
+    width: 100%;
+    transition: border-color 200ms linear;
 }
 
 #query.error {
-	border-color: #f55;
+    border-color: #f55;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 #controls {
-	position: absolute;
-	top: 0px;
-	left: 0px;
-	width: 100%;
-	min-height: 100%;
-	padding-bottom: 10px;
-	box-sizing: border-box;
-	background-color: #fff;
-	color: #222;
-	transition: opacity 300ms linear;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width: 100%;
+    min-height: 100%;
+    padding-bottom: 10px;
+    box-sizing: border-box;
+    background-color: #fff;
+    color: #222;
+    transition: opacity 300ms linear;
 }
 
 #controls.pending {
-	cursor: wait;
-	opacity: .5;
+    cursor: wait;
+    opacity: .5;
 }
 
 .controlOption {
-	width: 330px;
-	margin: 20px auto;
+    width: 330px;
+    margin: 20px auto;
 }
 
 .controlOption input, .controlOption textarea {
-	width: 330px;
-	border-radius: 0px;
-	border: 1px solid #ddd;
-	background-color: #f8f8f8;
-	padding: 8px;
-	display: block;
-	margin: 2px 0px;
-	box-sizing: border-box;
-	font-family: monospace;
-	font-size: 12px;
+    width: 330px;
+    border-radius: 0px;
+    border: 1px solid #ddd;
+    background-color: #f8f8f8;
+    padding: 8px;
+    display: block;
+    margin: 2px 0px;
+    box-sizing: border-box;
+    font-family: monospace;
+    font-size: 12px;
 }
 
 .controlOption textarea {
-	height: 200px;
+    height: 200px;
 }
 
 .pending input, .pending textarea {
-	cursor: wait;
+    cursor: wait;
 }
 
 .controlButton {
-	width: 330px;
-	height: 30px;
-	text-align: center;
-	padding: 6px;
-	background-color: #eee;
-	color: #333;
-	cursor: pointer;
-	border: 1px solid #ddd;
-	box-sizing: border-box;
+    width: 330px;
+    height: 30px;
+    text-align: center;
+    padding: 6px;
+    background-color: #eee;
+    color: #333;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    box-sizing: border-box;
 }
 
 .controlButton:hover {
-	background-color: #d4d4d4;
+    background-color: #d4d4d4;
 }
 
 .pending .controlButton {
-	cursor: wait;
-	opacity: .5;
+    cursor: wait;
+    opacity: .5;
 }
 
 .pending .controlButton:hover {
-	background-color: #eee;
+    background-color: #eee;
 }
 
 #returnVis {
-	position: absolute;
-	right: 10px;
-	top: 10px;
-	line-height: 18px;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    line-height: 18px;
 }
 
 #runInput {
-	margin: 25px auto;
+    margin: 25px auto;
 }
 
 #controlMessage {
-	margin: 0px auto;
-	width: 330px;
-	color: #fff;
-	padding: 24px 16px;
-	box-sizing: border-box;
-	font-weight: bold;
-	background-color: #ff6666;
+    margin: 0px auto;
+    width: 330px;
+    color: #fff;
+    padding: 24px 16px;
+    box-sizing: border-box;
+    font-weight: bold;
+    background-color: #ff6666;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .sentence, .neuron, .token, .word {
-	cursor: pointer;
+    cursor: pointer;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .sentence {
-	margin-bottom: 10px;
-	margin-right: 10px;
-	display: inline-block;
+    margin: 1px 0px;
+    display: inline-block;
 }
 
 .sentence .tokenContainer {
-	display: inline-block;
+    display: inline-block;
 }
 
 #results .sentence .token {
-	display: inline-block;
-	padding: 1px 0px;
+    display: inline-block;
+    border: none;
 }
 
 .sentence .token .itemName {
-	display: none;
+    display: none;
 }
 
 .sentence .tokenWord {
-	display: none;
-	padding: 5px;
+    display: none;
+    padding: 5px;
 }
 
 .sentence .tokenString {
-	display: inline-block;
-	padding: 5px;
+    display: inline-block;
+    padding: 5px;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .neuron {
-	margin: 2px 0px;
-	overflow: visible;
-	display: inline-block;
-	text-align: center;
+    margin: 2px 0px;
+    overflow: visible;
+    display: inline-block;
+    text-align: center;
 }
 
 .neuron .itemName {
-	margin: 0px;
-	background-color: #fff;
-	border: 1px solid #eee;
+    margin: 0px;
+    background-color: #fff;
+    border: 1px solid #eee;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .token {
-	margin: 2px -1px 2px 0px;
-	border: 1px solid #eee;
-	display: inline-block;
+    margin: 2px -1px 2px 0px;
+    border: 1px solid #eee;
+    display: inline-block;
 }
 
 .tokenString {
-	display: none;
+    display: none;
 }
 
 .token .wordContainer {
-	display: inline-block;
+    display: inline-block;
 }
 
 .token .word {
-	display: inline-block;
-	padding: 6px;
-	border: none;
-	margin: 0px;
+    display: inline-block;
+    padding: 6px;
+    border: none;
+    margin: 0px;
 }
 
 .token .word .itemName {
-	display: none;
+    display: none;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .word {
-	margin: 2px 2px 2px 0px;
-	border: 1px solid #eee;
-	padding: 0px 6px 0px 0px;
-	display: inline-block;
+    margin: 2px 2px 2px 0px;
+    border: 1px solid #eee;
+    padding: 0px 6px 0px 0px;
+    display: inline-block;
 }
 
 .word .itemName {
-	margin-right: 6px;
+    margin-right: 6px;
 }
 
 /*--------------------------------------------------------------------------------*/
 
 .itemName {
-	background-color: #f4f4f4;
-	color: #999;
-	padding: 6px;
-	display: inline-block;
-	min-width: 56px;
-	text-align: center;
+    background-color: #f4f4f4;
+    color: #999;
+    padding: 6px;
+    display: inline-block;
+    min-width: 56px;
+    text-align: center;
 }
 
 .sentence .neuronDiv {
-	display: inline-block;
+    display: inline-block;
 }
 
 .sentence .neuron {
-	margin: -6px 0px;
-	padding: 0px;
+    margin: -6px 0px;
+    padding: 0px;
 }
 
 .sentence .neuron .itemName {
-	padding: 5px 6px;
+    padding: 5px 6px;
 }
 
 .sentence .token .neuron {
-	display: none;
+    display: none;
 }
 
 .token .neuronDiv {
-	display: inline-block;
+    display: inline-block;
 }
 
 .token .neuron {
-	margin: -6px 0px;
-	padding: 0px;
+    margin: -6px 0px;
+    padding: 0px;
 }
 
 .token .neuron .itemName {
-	padding: 5px 6px;
+    padding: 5px 6px;
 }
 
 .word .neuronDiv {
-	display: inline-block;
+    display: inline-block;
 }
 
 .word .neuron {
-	margin: -6px 0px;
-	padding: 0px;
+    margin: -6px 0px;
+    padding: 0px;
 }
 
 .word .neuron .itemName {
-	padding: 5px 6px;
-	margin-right: 0px;
+    padding: 5px 6px;
+    margin-right: 0px;
 }
 
 .neuron .neuronDiv {
-	display: inline-block;
+    display: inline-block;
 }
 
 .neuron .neuron {
-	margin: -6px 0px;
-	padding: 0px;
+    margin: -6px 0px;
+    padding: 0px;
 }
 
 .neuron .corrVal {
-	margin: 0px 6px;
-	display: inline-block;
+    margin: 0px 6px;
+    display: inline-block;
 }

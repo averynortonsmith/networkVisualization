@@ -360,7 +360,7 @@ class Container extends React.Component {
                 }
                 
                 // map ahead of time to catch errors in mapping
-                let renderedComponents = Array.from(this.mapGetComponents(results).take(this.state.numVisible));
+                let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(results)));
 
                 // important! have to call Array.from(...) in the above line first, since mapGetComponents
                 // is a lazy generator: otherwise, errors from mapGetComponents will not be caught until
@@ -654,6 +654,29 @@ class SideBar extends React.Component {
             <div id="sidebar">
                 <div id="changeInput" onClick={this.props.toggleControls}>change model input</div>
                 <div id="inlineControls">
+                    <div>select(<i>results</i>)</div>
+                    
+                    <div>neurons</div>
+                    <div>tokens</div>
+                    <div>sentences</div>
+                    <div>words</div>
+                    <div>results</div>
+                    <div>selection</div>
+
+                    <div>loadSelection()</div>
+                    <div>clearSelection()</div>
+
+                    <div>colorBy(<i>selection</i>)</div>
+                    <div>colorAverage(<i>selection</i>)</div>
+                    <div>take(<i>20</i>, <i>selection</i>)</div>
+                    <div>reversed(<i>selection</i>)</div>
+                    <div>map(<i>selection</i>)</div>
+                    <div>filter(<i>selection</i>)</div>
+                    <div>sort(<i>selection</i>)</div>
+
+                    <div>getTokens(<i>selection</i>)</div>
+                    <div>getWords(<i>selection</i>)</div>
+                    <div>getColorers(<i>selection</i>)</div>
                 </div>
                 <div id="values">
                     {this.props.selectedComponents}

@@ -12,21 +12,17 @@ function correlation(a, b) {
     return sum(range(a.length).map(i => (a[i] - avgA) * (b[i] - avgB))) / rmsA / rmsB;
 }
 
-// --------------------------------------------------------------------------------
-
-Object.defineProperty(Object.prototype, "take", {
-    value: function*(n) {
-        if (n > 0) {
-            let result = this.next();
-            if (result.value != undefined) {
-                yield result.value;
-                if (result.done == false) {
-                    yield* this.take(n - 1);
-                }
-            }         
-        }
+function* takeGen(n, gen) {
+    if (n > 0) {
+        let result = gen.next();
+        if (result.value != undefined) {
+            yield result.value;
+            if (result.done == false) {
+                yield* takeGen(n - 1, gen);
+            }
+        }         
     }
-});
+}
 
 // --------------------------------------------------------------------------------
 
