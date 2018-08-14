@@ -119,6 +119,9 @@ class Container extends React.Component {
     }
 
     processToggle(selection, original, addOnly) {
+        if (typeof original[Symbol.iterator] === 'function') {
+            original = Array.from(original);
+        }
         if (original instanceof Array) {
            return original.reduce((result, value) => this.processToggle(result, value, addOnly), selection);
         }
@@ -136,6 +139,7 @@ class Container extends React.Component {
         else if (!addOnly) {
             return selection.filter(other => other.key != value.key);
         }
+        return selection;
     }
 
     // call when we get new data from backend
@@ -220,10 +224,11 @@ class Container extends React.Component {
         });
 
         let words = Object.keys(wordsDict).map(string => new WordValue(string, wordsDict[string]));
-        
+        let components = Array.from(this.mapGetComponents(selection))
+
         this.setState({data: {activations, neurons, tokens, sentences, words}});
         this.setState({selection: selection});
-        this.setState({selectedComponents: Array.from(this.mapGetComponents(selection))});
+        this.setState({selectedComponents: components});
     }
 
 
@@ -309,10 +314,13 @@ class Container extends React.Component {
                 }
                 
                 // map ahead of time to catch errors in mapping
-                let renderedComponents = this.mapGetComponents(results).take(this.state.numVisible);
+                let renderedComponents = Array.from(this.mapGetComponents(results).take(this.state.numVisible));
 
+                // important! have to call Array.from(...) in the above line first, since mapGetComponents
+                // is a lazy generator: otherwise, errors from mapGetComponents will not be caught until
+                // after results are set to the erronrous value. Don't inline Array.from()
                 this.setState({results: results});
-                this.setState({renderedComponents: Array.from(renderedComponents)});
+                this.setState({renderedComponents: renderedComponents});
                 this.setState({errorMessage: ""});
             }
             catch (err) {
