@@ -27,13 +27,11 @@ SentenceValue.prototype.colorAverage = function(colorer) {
 };
 
 SentenceValue.prototype.colorBy = function(colorer, average=false) {
-    if (colorer instanceof Array) {
+    if (colorer instanceof Array && !average) {
         return colorer.map(source => this.colorBy(source, average));
     }
-    if (colorer instanceof NeuronValue) {
-        let newTokens = this.tokens.map(token => token.colorBy(colorer, average))
-        return new SentenceValue(newTokens, this.position, colorer);
-    }
+    let newTokens = this.tokens.map(token => token.colorAverage(colorer, average))
+    return new SentenceValue(newTokens, this.position, colorer);
 };
 
 class Sentence extends React.Component {
@@ -41,11 +39,15 @@ class Sentence extends React.Component {
         super(props);
     }
 
+    shouldComponentUpdate() {
+        return false;
+    }
+
     render() {
         return (
             <div>
                 <span className="sentence">
-                    {this.props.colorer ? this.props.colorer.getComponents() : []}
+                    {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
                     <span className="itemName" onClick={this.props.onClick}>sentence</span>
                     {this.props.tokens.map(token => token.getComponents())}
                 </span>
@@ -115,6 +117,10 @@ class Token extends React.Component {
         return {};
     }
 
+    shouldComponentUpdate() {
+        return false;
+    }
+
     render() {
         return (
             <div className="tokenContainer">
@@ -182,6 +188,10 @@ class Word extends React.Component {
         return {};
     }
 
+    shouldComponentUpdate() {
+        return false;
+    }
+
     render() {
         return (
             <div className="wordContainer">
@@ -231,6 +241,10 @@ NeuronValue.prototype.getComponents = function() {
 class Neuron extends React.Component {
     constructor(props) {
         super(props);
+    }
+
+    shouldComponentUpdate() {
+        return false;
     }
 
     render() {

@@ -111,21 +111,18 @@ class Container extends React.Component {
 
     // select / deselect data components
     toggleSelect(original, addOnly=false) {
-
-        let selection;
-
-        if (original instanceof Array) {
-            selection = original.reduce((result, value) => this.processToggle(result, value, addOnly), this.state.selection);
-        }
-        else {
-            selection = this.processToggle(this.state.selection, original, addOnly);
-        }
+        let selection = this.processToggle(this.state.selection, original, addOnly=addOnly);
+        let components = Array.from(this.mapGetComponents(selection));
 
         this.setState({selection: selection});
-        this.setState({selectedComponents: this.mapGetComponents(selection)});
+        this.setState({selectedComponents: components});
     }
 
     processToggle(selection, original, addOnly) {
+        if (original instanceof Array) {
+           return original.reduce((result, value) => this.processToggle(result, value, addOnly), selection);
+        }
+        
         // copy to remove activation highlighting
         let value = original.copy();
 
@@ -226,7 +223,7 @@ class Container extends React.Component {
         
         this.setState({data: {activations, neurons, tokens, sentences, words}});
         this.setState({selection: selection});
-        this.setState({selectedComponents: this.mapGetComponents(selection)});
+        this.setState({selectedComponents: Array.from(this.mapGetComponents(selection))});
     }
 
 
@@ -285,7 +282,7 @@ class Container extends React.Component {
     }
 
     increaseNumVisible() {
-        this.setState({numVisible: this.state.numVisible + 25}, () => this.handleQueryChange(this.state.query));
+        this.setState({numVisible: this.state.numVisible + 50}, () => this.handleQueryChange(this.state.query));
     }
 
     // update results for new valid query
