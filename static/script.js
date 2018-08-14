@@ -38,6 +38,7 @@ class Container extends React.Component {
         this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
         this.increaseNumVisible = this.increaseNumVisible.bind(this); 
         this.getTestData        = this.getTestData.bind(this); 
+        this.handleBuiltIn      = this.handleBuiltIn.bind(this); 
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -381,6 +382,11 @@ class Container extends React.Component {
         }
     }
 
+    handleBuiltIn(e) {
+        let command = e.target.innerText;
+        this.handleQueryChange(command);
+    }
+
     // process response from backend
     handleResponse(dataString) {
         let [activationsData, textData, predData] = JSON.parse(dataString);
@@ -424,7 +430,8 @@ class Container extends React.Component {
                         increaseNumVisible = {this.increaseNumVisible} />
                     <SideBar
                         selectedComponents = {this.state.selectedComponents}
-                        toggleControls     = {this.toggleControls} />
+                        toggleControls     = {this.toggleControls} 
+                        onClick            = {this.handleBuiltIn} />
                     <Footer
                         onChange     = {this.handleQueryChange}
                         errorMessage = {this.state.errorMessage}
@@ -654,29 +661,29 @@ class SideBar extends React.Component {
             <div id="sidebar">
                 <div id="changeInput" onClick={this.props.toggleControls}>change model input</div>
                 <div id="inlineControls">
-                    <div>select(<i>results</i>)</div>
-                    
-                    <div>neurons</div>
-                    <div>tokens</div>
-                    <div>sentences</div>
-                    <div>words</div>
-                    <div>results</div>
-                    <div>selection</div>
+                    <div className="builtIn" onClick={this.props.onClick}>select(<samp>results</samp>)</div>
 
-                    <div>loadSelection()</div>
-                    <div>clearSelection()</div>
+                    <div className="builtIn" onClick={this.props.onClick}>neurons</div>
+                    <div className="builtIn" onClick={this.props.onClick}>tokens</div>
+                    <div className="builtIn" onClick={this.props.onClick}>sentences</div>
+                    <div className="builtIn" onClick={this.props.onClick}>words</div>
+                    <div className="builtIn" onClick={this.props.onClick}>results</div>
+                    <div className="builtIn" onClick={this.props.onClick}>selection</div>
 
-                    <div>colorBy(<i>selection</i>)</div>
-                    <div>colorAverage(<i>selection</i>)</div>
-                    <div>take(<i>20</i>, <i>selection</i>)</div>
-                    <div>reversed(<i>selection</i>)</div>
-                    <div>map(<i>selection</i>)</div>
-                    <div>filter(<i>selection</i>)</div>
-                    <div>sort(<i>selection</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}>loadSelection()</div>
+                    <div className="builtIn" onClick={this.props.onClick}>clearSelection()</div>
 
-                    <div>getTokens(<i>selection</i>)</div>
-                    <div>getWords(<i>selection</i>)</div>
-                    <div>getColorers(<i>selection</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.colorBy(<i>selection</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.colorAverage(<i>selection</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.take(<i>n</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.reversed()</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.map(<i>func</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.filter(<i>func</i>)</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.sorted()</div>
+
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.getTokens()</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.getWords()</div>
+                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.getColorers()</div>
                 </div>
                 <div id="values">
                     {this.props.selectedComponents}

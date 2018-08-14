@@ -113,19 +113,23 @@ textarea {
     overflow-y: scroll;
 }
 
-#inlineControls div {
-    padding: 6px 8px;
+.builtIn {
+    padding: 3px 4px;
     border-bottom: 1px solid #eee;
     cursor: pointer;
     box-sizing: border-box;
     transition: background-color 100ms linear;
 }
 
-#inlineControls div i {
+.builtIn i {
     color: #aaa;
 }
 
-#inlineControls div:hover {
+.builtIn samp {
+    color: #aaa;
+}
+
+.builtIn:hover {
     background-color: #eee;
 }
 
@@ -278,7 +282,7 @@ textarea {
 /*--------------------------------------------------------------------------------*/
 
 .sentence {
-    margin: 1px 0px;
+    margin: 2px 0px;
     display: inline-block;
 }
 
@@ -288,11 +292,26 @@ textarea {
 
 #results .sentence .token {
     display: inline-block;
-    border: none;
+    border-left: none;
+    margin: 0px;
+}
+
+#results .sentence.color .token {
+    padding: 2px 0px;
+}
+
+#results .sentence {
+    display: inline-block;
+    box-sizing: border-box;
+}
+
+.sentence .itemName {
+    padding: 7px 6px
 }
 
 .sentence .token .itemName {
     display: none;
+    border: none;
 }
 
 .sentence .tokenWord {
@@ -381,7 +400,7 @@ textarea {
 }
 
 .sentence .neuron .itemName {
-    padding: 5px 6px;
+    border-color: #fff;
 }
 
 .sentence .token .neuron {

@@ -46,7 +46,7 @@ class Sentence extends React.Component {
     render() {
         return (
             <div>
-                <span className="sentence">
+                <span className={"sentence" + (this.props.colorer instanceof NeuronValue ? " color" : "")}>
                     {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
                     <span className="itemName" onClick={this.props.onClick}>sentence</span>
                     {this.props.tokens.map(token => token.getComponents())}
@@ -103,7 +103,7 @@ class Token extends React.Component {
             // in a sane language this would cause an error, but js doesn't care
             let actVal = getActivations()[sen][tok][layer][ind];
             let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
+            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", borderWidth: "0px"};
         }
         if (this.props.colorer instanceof Array) {
             let actVal = average(this.props.colorer.map((function(colorer) {
@@ -112,7 +112,7 @@ class Token extends React.Component {
                 return getActivations()[sen][tok][layer][ind];
             }).bind(this)));
             let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
+            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", borderWidth: "0px"};
         }
         return {};
     }
