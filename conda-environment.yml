@@ -44,18 +44,16 @@ dependencies:
   - pip:
     - chardet==3.0.4
     - click==6.7
-    - docopt==0.6.2
     - flask==1.0.2
     - idna==2.7
     - itsdangerous==0.24
     - jinja2==2.10
     - markupsafe==1.0
-    - mosestokenizer==1.0.0
-    - openfile==0.0.6
     - requests==2.19.1
-    - toolwrapper==0.3.0
     - torch==0.4.0
-    - torchtext==0.3.0
-    - tqdm==4.23.4
+    - torchtext==0.2.3
+    - tqdm==4.24.0
     - urllib3==1.23
     - werkzeug==0.14.1
+prefix: /home/averyn/anaconda3/envs/test
+
