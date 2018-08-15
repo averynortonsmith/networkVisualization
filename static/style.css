@@ -87,6 +87,8 @@ textarea {
     visibility: hidden;
     opacity: 0;
     transition: opacity 100ms linear;
+    white-space: pre-wrap;
+    word-break:break-all;
 }
 
 #resultsContainer.error #errorMessage {
@@ -271,6 +273,7 @@ textarea {
     box-sizing: border-box;
     font-weight: bold;
     background-color: #ff6666;
+    white-space: pre-wrap;
 }
 
 /*--------------------------------------------------------------------------------*/

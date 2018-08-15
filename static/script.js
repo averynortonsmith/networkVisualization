@@ -66,7 +66,7 @@ class Container extends React.Component {
             selection: [],
             selectedComponents: [],
             query: "sentences.colorBy(selection)", 
-            errorMessage: "",
+            errorMessage: "No model loaded:\nload model to view visualization",
             data: {},
             text: [], 
             pred: [],
@@ -76,8 +76,8 @@ class Container extends React.Component {
                 {modelPath: "en-es-1.pt", 
                  inputText: "A paragraph is a group of words put together to form a group that is usually longer than a sentence .\n\n"
                           + "Paragraphs are often made up of many sentences . They are usually between four to eight sentences .\n\n"
-                          + "Paragraphs can begin with an indentation ( about five spaces ) , or by missing a line out , and then starting again "
-                          + "; this makes telling when one paragraph ends and another begins easier .\n\n"
+                          + "Paragraphs can begin with an indentation ( about five spaces ) , or by missing a line out , "
+                          + "and then starting again ; this makes telling when one paragraph ends and another begins easier .\n\n"
                           + "A sentence is a group of words that are put together to mean something .\n\n"
                           + "A sentence is the basic unit of language which expresses a complete thought .\n\n"
                           + "It does this by following the grammatical rules of syntax .",
@@ -535,15 +535,23 @@ class Controls extends React.Component {
         // The format for modifications is as follows,
         // with one modification per line:
         // [sentence, token, layer, neuron, value]
-        formData.append("modifications", JSON.stringify(
-            this.props.modifications.split("\n")
-            .filter(x => x)
-            .map(JSON.parse)
-            .reduce(function(result, [sentence, ...modData]) {
-                result[sentence].push(modData);
-                return result;
-            }, sentenceMods)
-        ));
+        try {
+            formData.append("modifications", JSON.stringify(
+                this.props.modifications.split("\n")
+                .filter(x => x)
+                .map(JSON.parse)
+                .reduce(function(result, [sentence, ...modData]) {
+                    result[sentence].push(modData);
+                    return result;
+                }, sentenceMods)
+            ));
+        }
+        catch (err) {
+            this.props.setPending(false);
+            let errorMessage = "Invalid Modification:\n" + err.name + ":\n" + err.message;
+            this.props.setMessage(errorMessage);
+            return;
+        }
 
         // Define what happens on successful data submission
         request.addEventListener('load', function(event) {
@@ -643,7 +651,7 @@ class Controls extends React.Component {
                     onClick   = {this.props.toggleControls}>
                     return to visualization
                 </div>
-                {message ? <div id="controlMessage"><div>Server Error:</div>{message}</div> : ""}
+                {message ? <pre id="controlMessage"><div>Server Error:</div>{message}</pre> : ""}
             </div>
         );        
     }
@@ -673,6 +681,7 @@ class SideBar extends React.Component {
                     <div className="builtIn" onClick={this.props.onClick}>loadSelection()</div>
                     <div className="builtIn" onClick={this.props.onClick}>clearSelection()</div>
 
+                    <div className="builtIn" onClick={this.props.onClick}><samp>selection</samp>.modify(<i>value</i>)</div>
                     <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.colorBy(<i>selection</i>)</div>
                     <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.colorAverage(<i>selection</i>)</div>
                     <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.take(<i>n</i>)</div>
