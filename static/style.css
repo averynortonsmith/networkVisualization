@@ -7,6 +7,11 @@ is meaningful.
 
 body {
     font-family: monospace;
+    font-size: 12px;
+}
+
+input, textarea {
+    font-size: inherit;
 }
 
 textarea {
@@ -15,6 +20,7 @@ textarea {
     border: 1px solid #ccc;
     box-sizing: border-box;
     padding: 10px;
+    outline: none;
 }
 
 /*--------------------------------------------------------------------------------*/
@@ -218,7 +224,6 @@ textarea {
     margin: 2px 0px;
     box-sizing: border-box;
     font-family: monospace;
-    font-size: 12px;
 }
 
 .controlOption textarea {

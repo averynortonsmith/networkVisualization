@@ -482,9 +482,10 @@ class ResultsList extends React.Component {
 
     handleScroll(e) {
         let bottomOffset = e.target.scrollHeight - e.target.scrollTop - e.target.clientHeight;
-        if (bottomOffset < 300){
+        if (bottomOffset < 0.5 * e.target.clientHeight){
             this.setState({increasedNum: true});
             this.props.increaseNumVisible();
+            console.log(e.target.clientHeight)
         }
     }
 
