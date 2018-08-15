@@ -180,6 +180,9 @@ class Container extends React.Component {
         // element keys must be unique
         // selection should always contain renderable objects, 
         // so mapGetComponents should never throw an error
+
+        // TODO: THIS IS CURRENTLY QUADRATIC - MAKE LINEAR USING HASHMAP
+        
         if (selection.map(value => value.key).indexOf(value.key) == -1) {
             return selection.concat([value])
         }
@@ -278,32 +281,21 @@ class Container extends React.Component {
         this.setState({selectedComponents: components});
     }
 
-
     // get react components for values in a nested list
     * mapGetComponents(values) {
-        if (values instanceof Array) {
-            for (let value of values) {
-                yield* this.mapGetComponents(value) 
-            }
-        }
-        else {
-            yield this.tryGetComponents(values);
-        }
+        yield* flatMap(value => this.tryGetComponents(value),  values) 
     }
 
     tryGetComponents(value) {
-        // only render values, nested arrays of values, and numbers for now
+        // only render values, nested arrays / generators of values, and numbers for now
         if (value.getComponents) {
             return value.getComponents();
         }
         if (isNaN(value) == false) {
             return value;
-        }
-        if (value instanceof Array == false) {
-            let errorMessage = typeof value;
-            throw {name: "Cannot Render Type", message: errorMessage};
-        }
-        return value;
+        }      
+        let errorMessage = typeof value;
+        throw {name: "Cannot Render Type", message: errorMessage};
     }
 
     // get sentence values from text
@@ -349,24 +341,35 @@ class Container extends React.Component {
             let sentences      = this.state.data.sentences.slice();
             let words          = this.state.data.words.slice();
             let selection      = this.state.selection.slice();
-            let results        = results instanceof Array ? this.state.results.slice() : this.state.results;
+            let results        = this.state.results;
             let clearSelection = this.clearSelection;
 
             try {
-                let results = eval(query);
+                let rawResults = flatMap(x => x, eval(query));
+                let resultsMap = {};
+
+                // me: hey, javascript, if I call Array.from on a non-iterable value, you'll throw an error, right?
+                // js: nah, I'll just return an empty array. Wouldn't want to deprive you of all that fun debugging ;)
+                for (let value of rawResults) {
+                    resultsMap[value.key] = value;
+                }
+
+                let results = Object.values(resultsMap)
+
 
                 if (results === null) {
                     this.setState({errorMessage: ""});
                     return;
                 }
-                
+
                 // map ahead of time to catch errors in mapping
                 let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(results)));
 
                 // important! have to call Array.from(...) in the above line first, since mapGetComponents
                 // is a lazy generator: otherwise, errors from mapGetComponents will not be caught until
-                // after results are set to the erronrous value. Don't inline Array.from()
-                this.setState({results: results});
+                // after results are set to the erronrous value.
+                let copiedResults = flatMap(value => value.copy(), results);
+                this.setState({results: copiedResults});
                 this.setState({renderedComponents: renderedComponents});
                 this.setState({errorMessage: ""});
             }
@@ -382,8 +385,7 @@ class Container extends React.Component {
         }
     }
 
-    handleBuiltIn(e) {
-        let command = e.target.innerText;
+    handleBuiltIn(command) {
         this.handleQueryChange(command);
     }
 
@@ -670,30 +672,50 @@ class SideBar extends React.Component {
             <div id="sidebar">
                 <div id="changeInput" onClick={this.props.toggleControls}>change model input</div>
                 <div id="inlineControls">
-                    <div className="builtIn" onClick={this.props.onClick}>select(<samp>results</samp>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("select(results)")}>
+                        select(<samp>results</samp>)</div>
 
-                    <div className="builtIn" onClick={this.props.onClick}>neurons</div>
-                    <div className="builtIn" onClick={this.props.onClick}>tokens</div>
-                    <div className="builtIn" onClick={this.props.onClick}>sentences</div>
-                    <div className="builtIn" onClick={this.props.onClick}>words</div>
-                    <div className="builtIn" onClick={this.props.onClick}>results</div>
-                    <div className="builtIn" onClick={this.props.onClick}>selection</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("neurons")}>
+                        neurons</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("tokens")}>
+                        tokens</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("sentences")}>
+                        sentences</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("words")}>
+                        words</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results")}>
+                        results</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("selection")}>
+                        selection</div>
 
-                    <div className="builtIn" onClick={this.props.onClick}>loadSelection()</div>
-                    <div className="builtIn" onClick={this.props.onClick}>clearSelection()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("loadSelection()")}>
+                        loadSelection()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("clearSelection()")}>
+                        clearSelection()</div>
 
-                    <div className="builtIn" onClick={this.props.onClick}><samp>selection</samp>.modify(<i>value</i>)</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.colorBy(<i>selection</i>)</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.colorAverage(<i>selection</i>)</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.take(<i>n</i>)</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.reversed()</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.map(<i>func</i>)</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.filter(<i>func</i>)</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.sorted()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("selection.modify(value)")}>
+                        <samp>selection</samp>.modify(<i>value</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.colorBy(selection)")}>
+                        <samp>results</samp>.colorBy(<i>selection</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.colorAverage(selection)")}>
+                        <samp>results</samp>.colorAverage(<i>selection</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.take(n)")}>
+                        <samp>results</samp>.take(<i>n</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.reversed()")}>
+                        <samp>results</samp>.reversed()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.map(func)")}>
+                        <samp>results</samp>.map(<i>func</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.filter(func)")}>
+                        <samp>results</samp>.filter(<i>func</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.sorted()")}>
+                        <samp>results</samp>.sorted()</div>
 
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.getTokens()</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.getWords()</div>
-                    <div className="builtIn" onClick={this.props.onClick}><samp>results</samp>.getColorers()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.getTokens()")}>
+                        <samp>results</samp>.getTokens()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.getWords()")}>
+                        <samp>results</samp>.getWords()</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.getColorers()")}>
+                        <samp>results</samp>.getColorers()</div>
                 </div>
                 <div id="values">
                     {this.props.selectedComponents}

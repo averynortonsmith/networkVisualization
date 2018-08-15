@@ -24,6 +24,17 @@ function* takeGen(n, gen) {
     }
 }
 
+function* flatMap(func, values) {
+    if (values instanceof Array || typeof values[Symbol.iterator] === 'function') {
+        for (let value of values) {
+            yield* flatMap(func, value) 
+        }
+    }
+    else {
+        yield func(values);
+    }
+}
+
 // --------------------------------------------------------------------------------
 
 Object.defineProperty(Array.prototype, 'take', {
@@ -34,12 +45,12 @@ Object.defineProperty(Array.prototype, 'reversed', {
     value: function() { return [].concat(this).reverse(); }
 });
 
-Object.defineProperty(Array.prototype, 'colorBy', {
-    value: function(colorSource) { return this.map(elem => elem.colorBy(colorSource)); }
+Object.defineProperty(Object.prototype, 'colorBy', {
+    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource), this); }
 });
 
-Object.defineProperty(Array.prototype, 'colorAverage', {
-    value: function(colorSource) { return this.map(elem => elem.colorBy(colorSource, true)); }
+Object.defineProperty(Object.prototype, 'colorAverage', {
+    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), this); }
 });
 
 SentenceValue.prototype.getTokens = function() {
