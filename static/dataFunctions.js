@@ -30,8 +30,11 @@ function* flatMap(func, values) {
             yield* flatMap(func, value) 
         }
     }
-    else {
+    else if (values instanceof(VisComponent)) {
         yield func(values);
+    }
+    else {
+        throw {name : "TypeError", message : "cannot render type " + typeof values}; 
     }
 }
 
@@ -46,7 +49,7 @@ Object.defineProperty(Array.prototype, 'reversed', {
 });
 
 Object.defineProperty(Object.prototype, 'colorBy', {
-    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource), this); }
+    value: function*(colorSource) {yield* flatMap(elem => elem.colorBy(colorSource), this); }
 });
 
 Object.defineProperty(Object.prototype, 'colorAverage', {
