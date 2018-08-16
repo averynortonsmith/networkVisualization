@@ -17,10 +17,10 @@ cd networkVisualization/
 git submodule init
 git submodule update
 
-conda env create -f conda-environment.yml
-conda activate networkVisEnv
+conda env create -f conda-environment.yml -n networkVisEnv
+source activate networkVisEnv
 
-pip install pytorch
+pip install https://github.com/pytorch/text/archive/master.zip
 
 mkdir models
 wget http://people.csail.mit.edu/averyn/networkVisualization/models/en-es-1.pt -O ./models/en-es-1.pt
