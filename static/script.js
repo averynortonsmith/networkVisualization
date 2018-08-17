@@ -157,39 +157,40 @@ class Container extends React.Component {
     }
 
     // select / deselect data components
-    toggleSelect(original, addOnly=false) {
-        let selection = this.processToggle(this.state.selection, original, addOnly=addOnly);
+    toggleSelect(values, addOnly=false) {
+        let selection = this.processToggle(this.state.selection, values, addOnly=addOnly);
         let components = Array.from(this.mapGetComponents(selection));
 
         this.setState({selection: selection});
         this.setState({selectedComponents: components});
     }
 
-    processToggle(selection, original, addOnly) {
-        if (typeof original[Symbol.iterator] === 'function') {
-            original = Array.from(original);
-        }
-        if (original instanceof Array) {
-           return original.reduce((result, value) => this.processToggle(result, value, addOnly), selection);
-        }
-        
-        // copy to remove activation highlighting
-        let value = original.copy();
+
+    processToggle(selection, values, addOnly) {
+        values = Array.from(flatten(values));
+
+        let outputDict = selection.reduce(function(result, value) {
+            result[value.key] = value;
+            return result;
+        }, {});
 
         // check if any element in selections has same key
         // element keys must be unique
         // selection should always contain renderable objects, 
         // so mapGetComponents should never throw an error
+        for (let value of values) {
+            // copy to remove activation highlighting
+            let valueCopy = value.copy();
 
-        // TODO: THIS IS CURRENTLY QUADRATIC - MAKE LINEAR USING HASHMAP
-        
-        if (selection.map(value => value.key).indexOf(value.key) == -1) {
-            return selection.concat([value])
+            if (valueCopy.key in outputDict && !addOnly) {
+                delete outputDict[valueCopy.key];
+            }
+            else {
+                outputDict[valueCopy.key] = valueCopy;
+            }
         }
-        else if (!addOnly) {
-            return selection.filter(other => other.key != value.key);
-        }
-        return selection;
+
+        return Object.values(outputDict);
     }
 
     // call when we get new data from backend
@@ -345,7 +346,7 @@ class Container extends React.Component {
             let clearSelection = this.clearSelection;
 
             try {
-                let rawResults = flatMap(x => x, eval(query));
+                let rawResults = flatten(eval(query));
                 let resultsMap = {};
 
                 // me: hey, javascript, if I call Array.from on a non-iterable value, you'll throw an error, right?
@@ -693,8 +694,8 @@ class SideBar extends React.Component {
                     <div className="builtIn" onClick={() => this.props.onClick("clearSelection()")}>
                         clearSelection()</div>
 
-                    <div className="builtIn" onClick={() => this.props.onClick("selection.modify(value)")}>
-                        <samp>selection</samp>.modify(<i>value</i>)</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("results.modify(selection, value)")}>
+                        <samp>results</samp>.modify(<i>selection</i>, <i>value</i>)</div>
                     <div className="builtIn" onClick={() => this.props.onClick("results.colorBy(selection)")}>
                         <samp>results</samp>.colorBy(<i>selection</i>)</div>
                     <div className="builtIn" onClick={() => this.props.onClick("results.colorAverage(selection)")}>

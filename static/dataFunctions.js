@@ -38,6 +38,17 @@ function* flatMap(func, values) {
     }
 }
 
+function* flatten(values) {
+    if (values instanceof Array || typeof values[Symbol.iterator] === 'function') {
+        for (let value of values) {
+            yield* flatten(value) 
+        }
+    }
+    else {
+        yield values;
+    }
+}
+
 // --------------------------------------------------------------------------------
 
 Object.defineProperty(Array.prototype, 'take', {
