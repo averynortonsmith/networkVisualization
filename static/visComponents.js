@@ -1,6 +1,30 @@
 
 // --------------------------------------------------------------------------------
 
+function ActivationValue(actVal, position) {
+    this.position = position;
+    this.actVal   = actVal;
+    this.key      = "Activation " + position;
+}
+
+// --------------------------------------------------------------------------------
+
+function VisComponent() {}
+
+SentenceValue.prototype = Object.create(VisComponent.prototype);
+SentenceValue.prototype.constructor = SentenceValue;
+
+TokenValue.prototype = Object.create(VisComponent.prototype);
+TokenValue.prototype.constructor = TokenValue;
+
+WordValue.prototype = Object.create(VisComponent.prototype);
+WordValue.prototype.constructor = WordValue;
+
+NeuronValue.prototype = Object.create(VisComponent.prototype);
+NeuronValue.prototype.constructor = NeuronValue;
+
+// --------------------------------------------------------------------------------
+
 function SentenceValue(tokens, position, colorer=null) {
     this.position = position;
     this.tokens   = tokens;
@@ -205,14 +229,6 @@ class Word extends React.Component {
                 </span>
             </div>);
     }
-}
-
-// --------------------------------------------------------------------------------
-
-function ActivationValue(actVal, position) {
-    this.position = position;
-    this.actVal   = actVal;
-    this.key      = "Activation " + position;
 }
 
 // --------------------------------------------------------------------------------
