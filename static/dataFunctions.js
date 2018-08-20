@@ -35,6 +35,15 @@ function* flatMap(func, values) {
     }
 }
 
+function* filter(func, values) {
+    for (let value of values) {
+        if (func(value)) {
+            yield value;
+        }
+    }
+}
+
+
 // --------------------------------------------------------------------------------
 
 Object.defineProperty(Array.prototype, 'take', {

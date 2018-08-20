@@ -36,6 +36,7 @@ class Container extends React.Component {
         this.tryGetComponents   = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
         this.getSentences       = this.getSentences.bind(this);      // get sentence values from text tokens
         this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
+        this.loadSelection      = this.loadSelection.bind(this);    
         this.increaseNumVisible = this.increaseNumVisible.bind(this); 
         this.getTestData        = this.getTestData.bind(this); 
         this.handleBuiltIn      = this.handleBuiltIn.bind(this); 
@@ -318,6 +319,12 @@ class Container extends React.Component {
         return output;
     }
 
+    loadSelection() {
+        let selection = this.state.selection;
+        this.clearSelection();
+        return selection;
+    }
+
     // clear the selection variable, available in console
     clearSelection() {
         this.setState({selection: []});
@@ -343,9 +350,17 @@ class Container extends React.Component {
             let selection      = this.state.selection.slice();
             let results        = this.state.results;
             let clearSelection = this.clearSelection;
+            let loadSelection  = this.loadSelection;
 
             try {
-                let rawResults = flatMap(x => x, eval(query));
+                let queryResults = eval(query)
+
+                if (queryResults === null) {
+                    this.setState({errorMessage: ""});
+                    return;
+                }
+
+                let rawResults = flatMap(x => x, queryResults);
                 let resultsMap = {};
 
                 // me: hey, javascript, if I call Array.from on a non-iterable value, you'll throw an error, right?
@@ -356,20 +371,20 @@ class Container extends React.Component {
 
                 let results = Object.values(resultsMap)
 
-
-                if (results === null) {
-                    this.setState({errorMessage: ""});
-                    return;
-                }
-
                 // map ahead of time to catch errors in mapping
                 let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(results)));
 
                 // important! have to call Array.from(...) in the above line first, since mapGetComponents
                 // is a lazy generator: otherwise, errors from mapGetComponents will not be caught until
                 // after results are set to the erronrous value.
-                let copiedResults = flatMap(value => value.copy(), results);
-                this.setState({results: copiedResults});
+                let rawCopys = flatMap(value => value.copy(), results);
+                let copyMap = {};
+
+                for (let value of rawCopys) {
+                    copyMap[value.key] = value;
+                }
+
+                this.setState({results: Object.values(copyMap)});
                 this.setState({renderedComponents: renderedComponents});
                 this.setState({errorMessage: ""});
             }

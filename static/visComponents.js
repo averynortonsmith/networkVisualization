@@ -144,7 +144,7 @@ function WordValue(string, averages, colorer=null) {
 }
 
 WordValue.prototype.copy = function(neuron) {
-    return new WordValue(this.string);
+    return new WordValue(this.string, this.averages);
 };
  
 WordValue.prototype.getComponents = function() {
