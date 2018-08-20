@@ -25,7 +25,7 @@ function* takeGen(n, gen) {
 }
 
 function* flatMap(func, values) {
-    if (values instanceof Array || typeof values[Symbol.iterator] === 'function') {
+    if (values instanceof Array || typeof values[Symbol.iterator] === "function") {
         for (let value of values) {
             yield* flatMap(func, value) 
         }
@@ -39,7 +39,7 @@ function* flatMap(func, values) {
 }
 
 function* flatten(values) {
-    if (values instanceof Array || typeof values[Symbol.iterator] === 'function') {
+    if (values instanceof Array || typeof values[Symbol.iterator] === "function") {
         for (let value of values) {
             yield* flatten(value) 
         }
@@ -60,20 +60,68 @@ function* filter(func, values) {
 
 // --------------------------------------------------------------------------------
 
-Object.defineProperty(Array.prototype, 'take', {
+Object.defineProperty(Array.prototype, "take", {
     value: function(n) { return this.slice(0, n); }
 });
 
-Object.defineProperty(Array.prototype, 'reversed', {
+Object.defineProperty(Array.prototype, "reversed", {
     value: function() { return [].concat(this).reverse(); }
 });
 
-Object.defineProperty(Object.prototype, 'colorBy', {
-    value: function*(colorSource) {yield* flatMap(elem => elem.colorBy(colorSource), this); }
+// --------------------------------------------------------------------------------
+
+Object.defineProperty(Object.prototype, "map", {
+    value: func => flatMap(func, copyDedupe(this))
 });
 
-Object.defineProperty(Object.prototype, 'colorAverage', {
-    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), this); }
+Object.defineProperty(Object.prototype, "filter", {
+    value: func => filter(func, copyDedupe(this))
+});
+
+Object.defineProperty(Object.prototype, "colorSort", {
+    // me: hey, javascript, if I accidentally mark a normal function (has a return statement) as a
+    //     generator, you'll make sure to throw an error so that I realize my mistake, right?
+    // js: nah
+    value: function(colorSource) {
+        let values = Array.from(flatten(copyDedupe(this).colorBy(colorSource)));
+        values.sort((a, b) => a.actVal < b.actVal);
+        console.log(values);
+        return values;
+    }
+});
+
+Object.defineProperty(Object.prototype, "colorBy", {
+    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource), copyDedupe(this)); }
+});
+
+Object.defineProperty(Object.prototype, "colorAverage", {
+    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), copyDedupe(this)); }
+});
+
+Object.defineProperty(Object.prototype, "getColorers", {
+    value: function*() { yield* flatMap(elem => elem.colorer, this); }
+});
+
+Object.defineProperty(Object.prototype, "modify", {
+    value: function(selection, value) {
+        let mods = [];
+        for (let token of copyDedupe(this)) {
+            if (token instanceof TokenValue == false) {
+                let errorMessage = "Bad Input Type For Method Modify";
+                throw {name: "Bad Input Type For Method Modify" , message: "shoudl be [tokens].modify([neurons], intValue)"};
+            }
+            for (let neuron of selection) {
+                if (neuron instanceof NeuronValue == false) {
+                    throw {name: "Bad Input Type For Method Modify" , message: "shoudl be [tokens].modify([neurons], intValue)"};
+                }
+                let [sen, tok] = token.position;
+                let [layer, ind] = neuron.position;
+                mods.push(JSON.stringify([sen, tok, layer, ind, value].map(Number)) + "\n");
+            }
+        }
+        getAddMods()(mods);
+        return null;
+    }
 });
 
 SentenceValue.prototype.getTokens = function() {
@@ -83,3 +131,21 @@ SentenceValue.prototype.getTokens = function() {
 TokenValue.prototype.getWord = function() {
     return this.word;
 };
+
+WordValue.prototype.getString = function() {
+    return this.string;
+};
+
+function deduplicate(values) {
+    let resultsMap = {};
+
+    for (let value of values) {
+        resultsMap[value.key] = value;
+    }
+
+    return Object.values(resultsMap);
+}
+
+function copyDedupe(values) {
+    return deduplicate(flatMap(elem => elem.copy(), values));
+}

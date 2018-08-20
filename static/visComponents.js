@@ -85,7 +85,24 @@ function TokenValue(word, position, colorer=null) {
     this.position = position;
     this.word     = word;
     this.colorer  = colorer;
+    this.actVal   = 0;
     this.key      = "Token " + position + (colorer ? " " + colorer.key : "");
+    if (colorer) {
+        if (colorer instanceof NeuronValue) {
+            let [layer, ind] = colorer.position;
+            let [sen, tok]   = position;
+            // layer and ind are really strings, not ints
+            // in a sane language this would cause an error, but js doesn't care
+            this.actVal = getActivations()[sen][tok][layer][ind];
+        }
+        if (colorer instanceof Array) {
+            this.actVal = average(colorer.map(function(colorer) {
+                let [layer, ind] = colorer.position;
+                let [sen, tok]   = position;
+                return getActivations()[sen][tok][layer][ind];
+            }));
+        }
+    }
 }
 
 TokenValue.prototype.copy = function(neuron) {
@@ -98,6 +115,7 @@ TokenValue.prototype.getComponents = function() {
         word     = {this.word}
         position = {this.position}
         colorer  = {this.colorer}
+        actVal   = {this.actVal}
         key      = {this.key}
         onClick  = {() => getToggleSelect()(this)} />);
 };
@@ -120,25 +138,8 @@ class Token extends React.Component {
     }
 
     getColorStyle() {
-        if (this.props.colorer instanceof NeuronValue) {
-            let [layer, ind] = this.props.colorer.position;
-            let [sen, tok]   = this.props.position;
-            // layer and ind are really strings, not ints
-            // in a sane language this would cause an error, but js doesn't care
-            let actVal = getActivations()[sen][tok][layer][ind];
-            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", borderWidth: "0px"};
-        }
-        if (this.props.colorer instanceof Array) {
-            let actVal = average(this.props.colorer.map((function(colorer) {
-                let [layer, ind] = colorer.position;
-                let [sen, tok]   = this.props.position;
-                return getActivations()[sen][tok][layer][ind];
-            }).bind(this)));
-            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", borderWidth: "0px"};
-        }
-        return {};
+        let color  = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+        return {backgroundColor: color + Math.abs(this.props.actVal) ** .5 + ")", marginRight: "0px", borderWidth: "0px"};
     }
 
     shouldComponentUpdate() {
@@ -164,7 +165,16 @@ function WordValue(string, averages, colorer=null) {
     this.string   = string;
     this.averages = averages;
     this.colorer  = colorer;
+    this.actVal   = 0;
     this.key      = "Word " + string + (colorer ? " " + colorer.key : "");
+    if (colorer) {
+        if (colorer instanceof NeuronValue) {
+            this.actVal = averages[colorer.positionString];
+        }
+        if (colorer instanceof Array) {
+            this.actVal = average(colorer.map(colorer => averages[colorer.positionString]));
+        }
+    }
 }
 
 WordValue.prototype.copy = function(neuron) {
@@ -175,7 +185,7 @@ WordValue.prototype.getComponents = function() {
     return (
         <Word
         string   = {this.string}
-        averages = {this.averages}
+        actVal   = {this.actVal}
         colorer  = {this.colorer}
         key      = {this.key}
         onClick  = {() => getToggleSelect()(this)} />);
@@ -199,17 +209,8 @@ class Word extends React.Component {
     }
 
     getColorStyle() {
-        if (this.props.colorer instanceof NeuronValue) {
-            let actVal = this.props.averages[this.props.colorer.positionString];
-            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
-        }
-        if (this.props.colorer instanceof Array) {
-            let actVal = average(this.props.colorer.map(colorer => this.props.averages[colorer.positionString]));
-            let color  = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"};
-        }
-        return {};
+        let color  = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+        return {backgroundColor: color + Math.abs(this.props.actVal) ** .5 + ")", marginRight: "0px", border: "none"};
     }
 
     shouldComponentUpdate() {
@@ -238,7 +239,15 @@ function NeuronValue(activations, positionString, colorer=null) {
     this.position       = positionString.split(":");
     this.activations    = activations;
     this.colorer        = colorer;
+    this.actVal         = 0;
     this.key            = "Neuron " + positionString + (colorer ? " " + colorer.key : "");
+    if (colorer) {
+        if (colorer instanceof NeuronValue) {
+            let thisVals  = activations.map(act => act.actVal);
+            let otherVals = colorer.activations.map(act => act.actVal);
+            this.actVal   = correlation(thisVals, otherVals);
+        }
+    }
 }
 
 NeuronValue.prototype.copy = function(neuron) {
@@ -249,8 +258,8 @@ NeuronValue.prototype.getComponents = function() {
     return (
         <Neuron
         positionString = {this.positionString}
-        activations    = {this.activations}
         colorer        = {this.colorer}
+        actVal         = {this.actVal}
         key            = {this.key}
         onClick        = {() => getToggleSelect()(this)} />);
 };
@@ -269,14 +278,8 @@ class Neuron extends React.Component {
     }
 
     getColorStyle() {
-        if (this.props.colorer instanceof NeuronValue) {
-            let thisVals  = this.props.activations.map(act => act.actVal);
-            let otherVals = this.props.colorer.activations.map(act => act.actVal);
-            let actVal    = correlation(thisVals, otherVals);
-            let color     = actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
-            return [actVal, {backgroundColor: color + Math.abs(actVal) ** .5 + ")", marginRight: "0px", border: "none"}];
-        }
-        return [0, {}];
+        let color = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+        return {backgroundColor: color + Math.abs(this.props.actVal) ** .5 + ")", marginRight: "0px", border: "none"};
     }
 
     shouldComponentUpdate() {
@@ -284,17 +287,17 @@ class Neuron extends React.Component {
     }
 
     render() {
-        let [actVal, colorStyle] = this.getColorStyle();
-        let alignmentSpace = actVal >= 0 ? "\u00A0" : ""
+        let alignmentSpace = this.props.actVal >= 0 ? "\u00A0" : ""
+        let positionSpace  = " ".repeat(6 - this.props.positionString.length);
         return (
             <div className="neuronDiv">
                 <span className = "neuron"
-                      style     = {colorStyle} >
+                      style     = {this.getColorStyle()} >
                       {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
-                      {this.props.colorer instanceof NeuronValue ? <span className="corrVal">{alignmentSpace}{parseFloat(actVal).toFixed(3)}</span> : ""}
+                      {this.props.colorer instanceof NeuronValue ? <span className="corrVal">{alignmentSpace}{parseFloat(this.props.actVal).toFixed(3)}</span> : ""}
                     <span className = "itemName"
                           onClick   = {this.props.onClick} >
-                          neuron {this.props.positionString}
+                          neuron {positionSpace + this.props.positionString}
                     </span>
                 </span>
             </div>);

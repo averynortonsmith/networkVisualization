@@ -396,6 +396,7 @@ textarea {
     display: inline-block;
     min-width: 56px;
     text-align: center;
+    white-space: pre;
 }
 
 .sentence .neuronDiv {
