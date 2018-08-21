@@ -73,8 +73,6 @@ def flatten(x):
 # inputText: string of input text to model
 # !!! currently, input text must already be tokenized with spaces - need to fix
 def getData(modelPath, inputText, modifications):
-    print(modifications)
-
     pred, rawActivations = translate(
         model         = modelPath,
         sentences     = inputText,

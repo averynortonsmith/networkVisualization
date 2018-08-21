@@ -108,11 +108,11 @@ Object.defineProperty(Object.prototype, "modify", {
         for (let token of copyDedupe(this)) {
             if (token instanceof TokenValue == false) {
                 let errorMessage = "Bad Input Type For Method Modify";
-                throw {name: "Bad Input Type For Method Modify" , message: "shoudl be [tokens].modify([neurons], intValue)"};
+                throw {name: "Bad Input Type For Method Modify" , message: "should be [tokens].modify([neurons], intValue)"};
             }
             for (let neuron of selection) {
                 if (neuron instanceof NeuronValue == false) {
-                    throw {name: "Bad Input Type For Method Modify" , message: "shoudl be [tokens].modify([neurons], intValue)"};
+                    throw {name: "Bad Input Type For Method Modify" , message: "should be [tokens].modify([neurons], intValue)"};
                 }
                 let [sen, tok] = token.position;
                 let [layer, ind] = neuron.position;
@@ -136,14 +136,15 @@ WordValue.prototype.getString = function() {
     return this.string;
 };
 
-function deduplicate(values) {
-    let resultsMap = {};
+function* deduplicate(values) {
+    let keySet = new Set([]);
 
     for (let value of values) {
-        resultsMap[value.key] = value;
+        if (value.key in keySet == false) {
+            yield value;
+            keySet.add(value);
+        }
     }
-
-    return Object.values(resultsMap);
 }
 
 function copyDedupe(values) {

@@ -354,7 +354,7 @@ class Container extends React.Component {
     // update results for new valid query
     handleQueryChange(query) {
         this.setState({query});
-        this.setState({numVisible: this.state.numVisible});
+        this.setState({numVisible: 50});
 
         if (query) {
             console.log(query)
