@@ -378,18 +378,18 @@ class Container extends React.Component {
                 }
 
                 let rawResults = flatMap(x => x, queryResults);
-                let results = deduplicate(rawResults);
+                let results = clonableIterator(deduplicate(rawResults));
 
                 // me: hey, javascript, if I call Array.from on a non-iterable value, you'll throw an error, right?
                 // js: nah, I'll just return an empty array. Wouldn't want to deprive you of all that fun debugging ;)
 
                 // map ahead of time to catch errors in mapping
-                let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(results)));
+                let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(results.clone())));
 
                 // important! have to call Array.from(...) in the above line first, since mapGetComponents
                 // is a lazy generator: otherwise, errors from mapGetComponents will not be caught until
                 // after results are set to the erronrous value.
-                this.setState({results: results});
+                this.setState({results: results.clone()});
                 this.setState({renderedComponents: renderedComponents});
                 this.setState({errorMessage: ""});
             }

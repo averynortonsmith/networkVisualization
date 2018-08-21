@@ -1,5 +1,8 @@
 
+// ---------------------------------------------------------------------------
 // and for my next trick, I will re-implement all of Haskell in ES6
+// ---------------------------------------------------------------------------
+
 const average = array => array.reduce((a, b) => a + b) / array.length;
 const range = n => [...Array(n).keys()];
 const sum = array => array.reduce((a, b) => a + b, 0)
@@ -57,6 +60,25 @@ function* filter(func, values) {
     }
 }
 
+// why, why is js missing so much basic functionality aroun d generators??
+// https://stackoverflow.com/questions/26179693/how-to-clone-es6-generator
+function clonableIterator(it) {
+    var vals = [];
+
+    return function make(n) {
+        return {
+            next(arg) {
+                const len = vals.length;
+                if (n >= len) vals[len] = it.next(arg);
+                return vals[n++];
+            },
+            clone()   { return make(n); },
+            throw(e)  { if (it.throw) it.throw(e); },
+            return(v) { if (it.return) it.return(v); },
+            [Symbol.iterator]() { return this; }
+        };
+    }(0);
+}
 
 // --------------------------------------------------------------------------------
 
