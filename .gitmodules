@@ -1,3 +1,6 @@
 [submodule "opennmt-inspection"]
 	path = opennmt-inspection
 	url = https://github.com/dabbler0/opennmt-inspection.git
+[submodule "aux_classifier"]
+	path = aux_classifier
+	url = https://github.com/fdalvi/aux_classifier
