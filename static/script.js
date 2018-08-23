@@ -39,7 +39,7 @@ class Container extends React.Component {
         this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
         this.loadSelection      = this.loadSelection.bind(this);    
         this.increaseNumVisible = this.increaseNumVisible.bind(this); 
-        this.getTestData        = this.getTestData.bind(this); 
+        this.getCacheData        = this.getCacheData.bind(this); 
         this.handleBuiltIn      = this.handleBuiltIn.bind(this); 
 
         // results:            values returned by a succesfull query
@@ -67,26 +67,19 @@ class Container extends React.Component {
             numVisible: 50, 
             selection: [],
             selectedComponents: [],
-            query: "sentences.colorBy(selection)", 
+            query: "selection", 
             errorMessage: "No model loaded:\nload model to view visualization",
             data: {},
             text: [], 
             pred: [],
             showControls: new URL(document.location).searchParams.get("view") != "visualization",
             controlState: {pending: false, message: ""},
-            controlValues:      
-                {modelPath: "en-es-1.pt", 
-                 inputText: "A paragraph is a group of words put together to form a group that is usually longer than a sentence .\n\n"
-                          + "Paragraphs are often made up of many sentences . They are usually between four to eight sentences .\n\n"
-                          + "Paragraphs can begin with an indentation ( about five spaces ) , or by missing a line out , "
-                          + "and then starting again ; this makes telling when one paragraph ends and another begins easier .\n\n"
-                          + "A sentence is a group of words that are put together to mean something .\n\n"
-                          + "A sentence is the basic unit of language which expresses a complete thought .\n\n"
-                          + "It does this by following the grammatical rules of syntax .",
-                neuronsList: "(0, 0), (0, 5)",
+            controlValues: {
+                modelPath: "en-es-1.pt",
                 modifications: "",
-                classifierPath: "",
-                trainDataValue: ""},
+                tokensPath: "testData/train.tok",
+                labelsPath: "testData/train.pos",
+            },
         };
         setToggleSelect(this.toggleSelect);
         setAddMods(function(mods) {
@@ -95,13 +88,13 @@ class Container extends React.Component {
     }
 
     componentDidMount() {
-        if (new URL(document.location).searchParams.get("debug") == "testData") {
+        if (new URL(document.location).searchParams.get("debug") == "cache") {
             this.setState({showControls: true});
-            this.getTestData();
+            this.getCacheData();
         }
     }
 
-    getTestData() {
+    getCacheData() {
         // clear error message from last request, if there was one
         this.setMessage("");
         this.setPending(true);
@@ -128,7 +121,7 @@ class Container extends React.Component {
             this.setMessage("server unreachable");
         }.bind(this));
 
-        request.open("POST", "/testData");
+        request.open("POST", "/cache");
 
         // Send our FormData object; HTTP headers are set automatically
         request.send(formData);
@@ -199,7 +192,7 @@ class Container extends React.Component {
     }
 
     // call when we get new data from backend
-    processData(activationsData, textData, predData){
+    processData(activationsData, textData, predData, topNeurons){
 
         let text = this.getSentences(textData);
         let pred = this.getSentences(predData);
@@ -238,21 +231,12 @@ class Container extends React.Component {
             return result;
         }, {});
 
-        let neuronsList = this.state.controlValues.neuronsList
-        let neuronsPairs = neuronsList.slice(1, neuronsList.length - 1)
-                                      .replace(/ /g,'')
-                                      .split("),(")
-                                      .map(pair => pair.replace(/[()]/g,'').split(",").map(Number));
-
-        let selection = neuronsPairs.map(function(pair) {
-            let [layer, ind] = pair;
-            let positionString = layer + ":" + ind;
-            let neuronActivations = neuronsDict[positionString];
-            return new NeuronValue(neuronActivations, positionString)
-        });
-
         // make neuron values for each set of activations
         let neurons = Object.keys(neuronsDict).map(positionString => new NeuronValue(neuronsDict[positionString], positionString));
+
+        let selection = topNeurons.map(function(index) {
+            return neurons[index];
+        });
 
         let tokens = sentences.reduce(function(result, sentence) {
             let tokens = sentence.tokens;
@@ -340,7 +324,7 @@ class Container extends React.Component {
     increaseNumVisible() {
         this.setState({numVisible: this.state.numVisible + 50}, function () {
             try {
-                let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(this.state.results)));
+                let renderedComponents = Array.from(takeGen(this.state.numVisible, this.mapGetComponents(this.state.results.clone())));
                 this.setState({renderedComponents: renderedComponents});
             }
             catch (err) {
@@ -411,8 +395,8 @@ class Container extends React.Component {
 
     // process response from backend
     handleResponse(dataString) {
-        let [activationsData, textData, predData] = JSON.parse(dataString);
-        this.processData(activationsData, textData, predData);
+        let [activationsData, textData, predData, topNeurons] = JSON.parse(dataString);
+        this.processData(activationsData, textData, predData, topNeurons);
         // trigger query update when data loads to render default query
         this.handleQueryChange(this.state.query);
         // switch from controls page to visualizations page
@@ -507,7 +491,6 @@ class ResultsList extends React.Component {
         if (bottomOffset < 0.5 * e.target.clientHeight){
             this.setState({increasedNum: true});
             this.props.increaseNumVisible();
-            console.log(e.target.clientHeight)
         }
     }
 
@@ -550,10 +533,8 @@ class Controls extends React.Component {
 
         // Push our data into our FormData object
         formData.append("modelPath", this.props.modelPath);
-        formData.append("inputText", this.props.inputText);
-
-        let numLines = this.props.inputText.split("\n").filter(x => x).length;
-        let sentenceMods = Array(numLines).fill(null).map(() => []);
+        formData.append("tokensPath", this.props.tokensPath);
+        formData.append("labelsPath", this.props.labelsPath);
 
         // The format for modifications is as follows,
         // with one modification per line:
@@ -563,10 +544,6 @@ class Controls extends React.Component {
                 this.props.modifications.split("\n")
                 .filter(x => x)
                 .map(JSON.parse)
-                .reduce(function(result, [sentence, ...modData]) {
-                    result[sentence].push(modData);
-                    return result;
-                }, sentenceMods)
             ));
         }
         catch (err) {
@@ -613,29 +590,28 @@ class Controls extends React.Component {
                         name     = "modelPath"
                         value    = {this.props.modelPath}
                         onChange = {this.handleChange}
-                        disabled = {pending}/>
+                        disabled = {pending} />
                 </div>
                 <div className="controlOption">
-                    <div>input text:</div>
-                    <textarea
-                        id       = "inputText"
-                        name     = "inputText"
-                        value    = {this.props.inputText}
-                        onChange = {this.handleChange}
-                        disabled = {pending}>
-                    </textarea>
-                </div>
-                <div className="controlOption">
-                    <div>neuron IDs:</div>
+                    <div>training tokens:</div>
                     <input
-                        id       = "neuronsList"
-                        name     = "neuronsList"
-                        value    = {this.props.neuronsList}
+                        id       = "tokensPath"
+                        name     = "tokensPath"
+                        value    = {this.props.tokensPath}
                         onChange = {this.handleChange}
-                        disabled = {pending}/>
+                        disabled = {pending} />
                 </div>
                 <div className="controlOption">
-                    <div>Manual modifications:</div>
+                    <div>training labels:</div>
+                    <input
+                        id       = "labelsPath"
+                        name     = "labelsPath"
+                        value    = {this.props.labelsPath}
+                        onChange = {this.handleChange}
+                        disabled = {pending} />
+                </div>
+                <div className="controlOption">
+                    <div>modifications:</div>
                     <textarea
                         id       = "modifications"
                         name     = "modifications"
@@ -644,24 +620,7 @@ class Controls extends React.Component {
                         disabled = {pending}>
                     </textarea>
                 </div>
-                <div className="controlOption">
-                    <div>classifier:</div>
-                    <input
-                        id       = "classifier"
-                        name     = "classifierPath"
-                        value    = {this.props.classifierPath}
-                        onChange = {this.handleChange}
-                        disabled = {true}/>
-                </div>
-                <div className="controlOption">
-                    <div>classifier training data:</div>
-                    <input
-                        id       = "trainData"
-                        name     = "trainDataValue"
-                        value    = {this.props.trainDataValue}
-                        onChange = {this.handleChange}
-                        disabled = {true}/>
-                </div>
+
                 <div
                     id        = "runInput"
                     className = "controlButton"
@@ -674,6 +633,7 @@ class Controls extends React.Component {
                     onClick   = {this.props.toggleControls}>
                     return to visualization
                 </div>
+
                 {message ? <pre id="controlMessage"><div>Server Error:</div>{message}</pre> : ""}
             </div>
         );        

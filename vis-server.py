@@ -7,6 +7,7 @@ import traceback
 
 sys.path.append("./opennmt-inspection/")
 from online_translator import translate
+import getClassifierData
 
 app = Flask(__name__)
 
@@ -25,20 +26,52 @@ def static_file(filename):
 def model():
     modelPath = os.path.join('models', request.form["modelPath"])
     modifications = json.loads(request.form["modifications"])
-    inputText = [sentence for sentence in request.form["inputText"].splitlines() if sentence]
+    tokensPath = request.form["tokensPath"]
+    labelsPath = request.form["labelsPath"]
+
+    with open(tokensPath, "r") as file:
+        trainTokens = file.read().splitlines()
+
+    with open(labelsPath, "r") as file:
+        trainLabels = file.read().splitlines()
+
+    numLines = len(trainTokens)
+    modsList = [[] for _ in range(numLines)]
+
+    for mod in modifications:
+        sentenceIndex = mod[0]
+        modsList[sentenceIndex].append(mod[1:])
+
+    print(modsList)
 
     try:
-        activations, text, preds = getData(modelPath, inputText, modifications)
+        rawActivations, text, preds = getData(modelPath, trainTokens, modsList)
+
+        # get rid of second dimension
+        # to keep format activations[sentence][token][layer][neuron]
+        # instead of activations[sentence][0][token][layer][neuron]
+        activations = [sentence[0] for sentence in rawActivations]
+
+        # scale activations linearly so that abs(largest_activation) == 1
+        norm = max(abs(value) for value in flatten(activations))
+        activations = listify(activations, norm=norm)
+
+        trainingActivations = [torch.stack([torch.cat(token) for token in sentence[0]]) for sentence in rawActivations]
+        topNeurons = getClassifierData.topNeurons(tokensPath, labelsPath, trainingActivations)
+
     except Exception as err:
         # catch python exception, throw http 500 error with error message
         print(traceback.format_exc())
         return str(err), 500
 
-    return jsonify([activations, text, preds])
+    with open("cache.json", "w") as file:
+        file.write(json.dumps([activations, text, preds, topNeurons]))
 
-@app.route("/testData", methods=["POST"])
-def testData():
-    with open("testData.json", "r") as file:
+    return jsonify([activations, text, preds, topNeurons])
+
+@app.route("/cache", methods=["POST"])
+def cache():
+    with open("cache.json", "r") as file:
         data = json.loads(file.read())
 
     return jsonify(data)
@@ -79,19 +112,10 @@ def getData(modelPath, inputText, modifications):
         modifications = modifications
     )
 
-    # get rid of second dimension
-    # to keep format activations[sentence][token][layer][neuron]
-    # instead of activations[sentence][0][token][layer][neuron]
-    activations = [act[0] for act in rawActivations]
-
-    # scale activations linearly so that abs(largest_activation) == 1
-    norm = max(abs(value) for value in flatten(activations))
-    activations = listify(activations, norm=norm)
-
     text = [sentence.strip().split(" ") for sentence in inputText]
     preds = [sentence.split(" ") for sentence in pred]
 
-    return activations, text, preds
+    return rawActivations, text, preds
 
 # --------------------------------------------------------------------------------
 
