@@ -327,6 +327,10 @@ textarea {
     padding: 5px;
 }
 
+.sentence .tokenLabel {
+    display: none;
+}
+
 .sentence .tokenString {
     display: inline-block;
     padding: 5px;
@@ -357,6 +361,13 @@ textarea {
 
 .tokenString {
     display: none;
+}
+
+.tokenLabel {
+    padding: 6px;
+    font-style: italic;
+    color: #777;
+    cursor: pointer;
 }
 
 .token .wordContainer {

@@ -26,14 +26,15 @@ def static_file(filename):
 def model():
     modelPath = os.path.join('models', request.form["modelPath"])
     modifications = json.loads(request.form["modifications"])
-    tokensPath = request.form["tokensPath"]
-    labelsPath = request.form["labelsPath"]
+    tokensPath = os.path.join('modelInputs', request.form["tokensPath"])
+    labelsPath = os.path.join('modelInputs', request.form["labelsPath"])
 
     with open(tokensPath, "r") as file:
         trainTokens = file.read().splitlines()
 
     with open(labelsPath, "r") as file:
         trainLabels = file.read().splitlines()
+        labels = [line.split(" ") for line in trainLabels]
 
     numLines = len(trainTokens)
     modsList = [[] for _ in range(numLines)]
@@ -57,7 +58,7 @@ def model():
         activations = listify(activations, norm=norm)
 
         trainingActivations = [torch.stack([torch.cat(token) for token in sentence[0]]) for sentence in rawActivations]
-        topNeurons = getClassifierData.topNeurons(tokensPath, labelsPath, trainingActivations)
+        topNeurons, topNeuronsByCategory = getClassifierData.topNeurons(tokensPath, labelsPath, trainingActivations)
 
     except Exception as err:
         # catch python exception, throw http 500 error with error message
@@ -65,9 +66,9 @@ def model():
         return str(err), 500
 
     with open("cache.json", "w") as file:
-        file.write(json.dumps([activations, text, preds, topNeurons]))
+        file.write(json.dumps([activations, text, preds, labels, topNeurons, topNeuronsByCategory]))
 
-    return jsonify([activations, text, preds, topNeurons])
+    return jsonify([activations, text, preds, labels, topNeurons, topNeuronsByCategory])
 
 @app.route("/cache", methods=["POST"])
 def cache():

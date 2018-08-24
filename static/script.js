@@ -14,6 +14,7 @@ function stateClosure() {
 let [getToggleSelect, setToggleSelect] = stateClosure();
 let [getActivations, setActivations] = stateClosure();
 let [getAddMods, setAddMods] = stateClosure();
+let [getHandleBuiltIn, setHandleBuiltIn] = stateClosure();
 
 function select(value) {
     getToggleSelect()(value, true);
@@ -39,8 +40,9 @@ class Container extends React.Component {
         this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
         this.loadSelection      = this.loadSelection.bind(this);    
         this.increaseNumVisible = this.increaseNumVisible.bind(this); 
-        this.getCacheData        = this.getCacheData.bind(this); 
+        this.getCacheData       = this.getCacheData.bind(this); 
         this.handleBuiltIn      = this.handleBuiltIn.bind(this); 
+        this.showLabels         = this.showLabels.bind(this); 
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
@@ -67,7 +69,7 @@ class Container extends React.Component {
             numVisible: 50, 
             selection: [],
             selectedComponents: [],
-            query: "selection", 
+            query: "words[0].colorSort(selection)", 
             errorMessage: "No model loaded:\nload model to view visualization",
             data: {},
             text: [], 
@@ -77,11 +79,12 @@ class Container extends React.Component {
             controlValues: {
                 modelPath: "en-es-1.pt",
                 modifications: "",
-                tokensPath: "testData/train.tok",
-                labelsPath: "testData/train.pos",
+                tokensPath: "train.tok",
+                labelsPath: "train.pos",
             },
         };
         setToggleSelect(this.toggleSelect);
+        setHandleBuiltIn(this.handleBuiltIn);
         setAddMods(function(mods) {
             this.setState({controlValues: {...this.state.controlValues, modifications: mods.join("")}});
         }.bind(this));
@@ -156,6 +159,9 @@ class Container extends React.Component {
 
     // select / deselect data components
     toggleSelect(values, addOnly=false) {
+        if (typeof values.copy === "function") {
+            values = values.copy();
+        }
         let selection = this.processToggle(this.state.selection, values, addOnly=addOnly);
         let components = Array.from(this.mapGetComponents(selection));
 
@@ -192,14 +198,14 @@ class Container extends React.Component {
     }
 
     // call when we get new data from backend
-    processData(activationsData, textData, predData, topNeurons){
+    processData(activationsData, textData, predData, labels, topNeurons, topNeuronsByCategory){
 
-        let text = this.getSentences(textData);
-        let pred = this.getSentences(predData);
+        let text = this.getSentences(textData, labels);
+        let pred = this.getSentences(predData, labels);
 
         // load input text and prediction text into interface
         this.setState({text, pred});
-        
+
         let activations = [];
         for (let sen = 0; sen < activationsData.length; sen++){
             for (let word = 0; word < activationsData[sen].length; word++){
@@ -220,7 +226,7 @@ class Container extends React.Component {
         // leads to some duplicated work, but makes more modular
 
         // make a new copy, just in case?
-        let sentences = this.getSentences(textData);
+        let sentences = this.getSentences(textData, labels);
 
         // get all activations for each neuron
         let neuronsDict = activations.reduce(function(result, activation) {
@@ -234,14 +240,29 @@ class Container extends React.Component {
         // make neuron values for each set of activations
         let neurons = Object.keys(neuronsDict).map(positionString => new NeuronValue(neuronsDict[positionString], positionString));
 
+        let topLabelledNeurons = {};
+        for (let label in topNeuronsByCategory) {
+            topLabelledNeurons[label] = topNeuronsByCategory[label].map(index => neurons[index]);
+        }
+
         let selection = topNeurons.map(function(index) {
             return neurons[index];
         });
+
+        topNeurons = selection;
 
         let tokens = sentences.reduce(function(result, sentence) {
             let tokens = sentence.tokens;
             return result.concat(tokens);
         }, []);
+
+        let labelledTokens = tokens.reduce(function(result, token) {
+            if (token.label in result == false) {
+                result[token.label] = [];
+            }
+            result[token.label].push(token);
+            return result;
+        }, {});
 
         let wordsDict = activations.reduce(function(result, activation) {
             let [sen, word, layer, ind] = activation.position;
@@ -266,7 +287,7 @@ class Container extends React.Component {
         let words = Object.keys(wordsDict).map(string => new WordValue(string, wordsDict[string]));
         let components = Array.from(this.mapGetComponents(selection))
 
-        this.setState({data: {activations, neurons, tokens, sentences, words}});
+        this.setState({data: {activations, neurons, tokens, sentences, words, topNeurons, labelledTokens, topLabelledNeurons}});
         this.setState({selection: selection});
         this.setState({selectedComponents: components});
     }
@@ -289,16 +310,17 @@ class Container extends React.Component {
     }
 
     // get sentence values from text
-    getSentences(textData) {
+    getSentences(textData, labels) {
         let output = [];
         for (let sen = 0; sen < textData.length; sen++) {
             let tokens = [];
             let sentence = textData[sen];
             for (let tok = 0; tok < sentence.length; tok++) {
                 let string   = sentence[tok];
+                let label    = labels[sen][tok];
                 let position = [sen, tok];
                 let word     = new WordValue(string);
-                let token    = new TokenValue(word, position);
+                let token    = new TokenValue(word, label, position);
                 tokens.push(token);
             }
             let position = sen;
@@ -344,14 +366,18 @@ class Container extends React.Component {
             console.log(query)
             // put values in local namespace for eval to use
             // slice array values to copy, so that user can't mutate by accident
-            let neurons        = this.state.data.neurons.slice();
-            let tokens         = this.state.data.tokens.slice();
-            let sentences      = this.state.data.sentences.slice();
-            let words          = this.state.data.words.slice();
-            let selection      = this.state.selection.slice();
-            let results        = deduplicate(this.state.results);
-            let clearSelection = this.clearSelection;
-            let loadSelection  = this.loadSelection;
+            let neurons            = this.state.data.neurons.slice();
+            let topNeurons         = this.state.data.topNeurons.slice();
+            let tokens             = this.state.data.tokens.slice();
+            let sentences          = this.state.data.sentences.slice();
+            let words              = this.state.data.words.slice();
+            let labelledTokens     = this.state.data.labelledTokens;
+            let topLabelledNeurons = this.state.data.topLabelledNeurons;
+            let selection          = this.state.selection.slice();
+            let results            = deduplicate(this.state.results);
+            let clearSelection     = this.clearSelection;
+            let loadSelection      = this.loadSelection;
+            let showLabels         = this.showLabels;
 
             try {
                 let queryResults = eval(query);
@@ -393,10 +419,14 @@ class Container extends React.Component {
         this.handleQueryChange(command);
     }
 
+    showLabels() {
+        return Object.values(this.state.data.labelledTokens).map(tokens => tokens[0]);
+    }
+
     // process response from backend
     handleResponse(dataString) {
-        let [activationsData, textData, predData, topNeurons] = JSON.parse(dataString);
-        this.processData(activationsData, textData, predData, topNeurons);
+        let [activationsData, textData, predData, labels, topNeurons, topNeuronsByCategory] = JSON.parse(dataString);
+        this.processData(activationsData, textData, predData, labels, topNeurons, topNeuronsByCategory);
         // trigger query update when data loads to render default query
         this.handleQueryChange(this.state.query);
         // switch from controls page to visualizations page
@@ -665,8 +695,14 @@ class SideBar extends React.Component {
                         words</div>
                     <div className="builtIn" onClick={() => this.props.onClick("results")}>
                         results</div>
-                    <div className="builtIn" onClick={() => this.props.onClick("selection")}>
-                        selection</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("topNeurons")}>
+                        topNeurons</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("topLabelledNeurons[\"label\"]")}>
+                        topLabelledNeurons[<i>"label"</i>]</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("labelledTokens[\"label\"]")}>
+                        labelledTokens[<i>"label"</i>]</div>
+                    <div className="builtIn" onClick={() => this.props.onClick("showLabels()")}>
+                        showLabels()</div>
 
                     <div className="builtIn" onClick={() => this.props.onClick("loadSelection()")}>
                         loadSelection()</div>

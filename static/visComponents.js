@@ -81,9 +81,10 @@ class Sentence extends React.Component {
 
 // --------------------------------------------------------------------------------
 
-function TokenValue(word, position, colorer=null) {
+function TokenValue(word, label, position, colorer=null) {
     this.position = position;
     this.word     = word;
+    this.label    = label;
     this.colorer  = colorer;
     this.actVal   = 0;
     this.key      = "Token " + position + (colorer ? " " + colorer.key : "");
@@ -106,13 +107,14 @@ function TokenValue(word, position, colorer=null) {
 }
 
 TokenValue.prototype.copy = function(neuron) {
-    return new TokenValue(this.word, this.position);
+    return new TokenValue(this.word, this.label, this.position);
 };
  
 TokenValue.prototype.getComponents = function() {
     return ( 
         <Token
         word     = {this.word}
+        label    = {this.label}
         position = {this.position}
         colorer  = {this.colorer}
         actVal   = {this.actVal}
@@ -128,7 +130,7 @@ TokenValue.prototype.colorBy = function(colorer, average=false) {
     if (colorer instanceof Array && !average) {
         return colorer.map(source => this.colorBy(source));
     }
-    return new TokenValue(this.word, this.position, colorer);
+    return new TokenValue(this.word, this.label, this.position, colorer);
 };
 
 class Token extends React.Component {
@@ -149,12 +151,16 @@ class Token extends React.Component {
     render() {
         return (
             <div className="tokenContainer">
-                <span className="token" style={this.getColorStyle()}>
+                <span
+                    className = "token"
+                    style     = {this.getColorStyle()}
+                    title     = {this.props.label} >
                     {this.props.colorer instanceof NeuronValue ? this.props.colorer.getComponents() : []}
                     <span className="itemName" onClick={this.props.onClick}>token</span>
                     <span className="tokenString" onClick={this.props.onClick}>{this.props.word.string}</span>
                     <span className="tokenWord">{this.props.word.getComponents()}</span>
                 </span>
+                <span className="tokenLabel" onClick={() => getHandleBuiltIn()("labelledTokens[\"" + this.props.label + "\"]")}>{this.props.label}</span>
             </div>);
     }
 }

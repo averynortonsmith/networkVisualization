@@ -28,7 +28,7 @@ function* takeGen(n, gen) {
 }
 
 function* flatMap(func, values) {
-    if (values instanceof Array || typeof values[Symbol.iterator] === "function") {
+    if (values instanceof Array || values !== undefined && typeof values[Symbol.iterator] === "function") {
         for (let value of values) {
             yield* flatMap(func, value) 
         }
@@ -42,7 +42,7 @@ function* flatMap(func, values) {
 }
 
 function* flatten(values) {
-    if (values instanceof Array || typeof values[Symbol.iterator] === "function") {
+    if (values instanceof Array || values !== undefined && typeof values[Symbol.iterator] === "function") {
         for (let value of values) {
             yield* flatten(value) 
         }
@@ -108,7 +108,6 @@ Object.defineProperty(Object.prototype, "colorSort", {
         let values = Array.from(flatten(copyDedupe(this).colorBy(colorSource)));
         // https://stackoverflow.com/questions/1969145/sorting-javascript-array-with-chrome
         values.sort((a, b) => b.actVal - a.actVal);
-        console.log(values);
         return values;
     }
 });

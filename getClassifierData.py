@@ -69,4 +69,4 @@ def topNeurons(
 
     # percentage isn't percentage!! must be fraction: 10% -> 0.1
     topNeurons, topNeuronsByCategory = utils.get_top_neurons(model, .1, label2idx)
-    return topNeurons.tolist()
+    return topNeurons.tolist(), {key: value.tolist() for (key, value) in topNeuronsByCategory.items()}
