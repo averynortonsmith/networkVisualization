@@ -106,7 +106,8 @@ Object.defineProperty(Object.prototype, "colorSort", {
     // js: nah
     value: function(colorSource) {
         let values = Array.from(flatten(copyDedupe(this).colorBy(colorSource)));
-        values.sort((a, b) => a.actVal < b.actVal);
+        // https://stackoverflow.com/questions/1969145/sorting-javascript-array-with-chrome
+        values.sort((a, b) => b.actVal - a.actVal);
         console.log(values);
         return values;
     }
