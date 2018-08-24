@@ -2,7 +2,8 @@
 run seq-to-seq translation experiments, and visualize network activations
 
 ## documentation work-in-progress
-```notes:
+```
+notes:
 
 general purpose:
   want to provide flexible way to look at data
