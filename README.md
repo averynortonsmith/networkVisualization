@@ -2,6 +2,8 @@
 run seq-to-seq translation experiments, and visualize network activations
 
 ## documentation work-in-progress
+```notes:
+
 general purpose:
   want to provide flexible way to look at data
   give user full control
@@ -64,6 +66,7 @@ developer documentation:
     
 ## installation
 (need python3 and anaconda installed)
+```
 
 ```
 git clone https://github.com/averynortonsmith/networkVisualization.git
