@@ -64,6 +64,7 @@ developer documentation:
     functional programming
     react / in-browser
     lazy-loading / generators
+    sqrt curve for colors
     
 ## installation
 (need python3 and anaconda installed)
