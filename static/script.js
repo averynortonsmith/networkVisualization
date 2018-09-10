@@ -159,8 +159,8 @@ class Container extends React.Component {
 
     // select / deselect data components
     toggleSelect(values, addOnly=false) {
-        if (typeof values.copy === "function") {
-            values = values.copy();
+        if (typeof values.clone === "function") {
+            values = values.clone();
         }
         let selection = this.processToggle(this.state.selection, values, addOnly=addOnly);
         let components = Array.from(this.mapGetComponents(selection));
@@ -374,10 +374,15 @@ class Container extends React.Component {
             let labelledTokens     = this.state.data.labelledTokens;
             let topLabelledNeurons = this.state.data.topLabelledNeurons;
             let selection          = this.state.selection.slice();
-            let results            = deduplicate(this.state.results);
             let clearSelection     = this.clearSelection;
             let loadSelection      = this.loadSelection;
             let showLabels         = this.showLabels;
+
+            let results = this.state.results;
+            if (typeof results.clone === "function") {
+                results = results.clone();
+            }
+            results = clonableIterator(deduplicate(results));
 
             try {
                 let queryResults = eval(query);
