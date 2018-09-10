@@ -1,5 +1,5 @@
 # networkVisualization
-run seq-to-seq translation experiments, and visualize network activations
+Run seq-to-seq translation experiments, and visualize network activations
 
 ![demo gif](imgsForReadme/demo.gif)
 
@@ -9,6 +9,7 @@ run seq-to-seq translation experiments, and visualize network activations
 [Query Variables and Commands](#query-variables-and-commands)  
 [Example Use-Case](#example-use-case)  
 [Installation Instructions](#installation-instructions)  
+[Development Notes](#development-notes)  
 
 ### Application Description:
 This application helps you run seq-to-seq translation experiments,
@@ -21,15 +22,8 @@ trained model, and uses a classifier to identify the most salient
 neurons for each label. This data is sent to the front-end, where it
 can be visualized.
 
-#### Interface Design Philosophy:
-- General Purpose: want the user to be able to sort / filter / manipulate the
-  data arbitratily. Provide the user with a small set of visualizations that work with an arbitrary subset of the data, instead of many visualizations that only work on limited subsets of the data.
-- Flexibility: user should be able to sequence / nest commands arbitratily
-- Color Scheme: any color used in the interface should be associated with some 
-  quantitative or semantic meaning
-
 ### UI Layout:
-In terms of complexity, the UI is broad, but not deep. The easiest way to understand it is probably to just play around with it for a bit.
+In terms of complexity, the UI is broad, but not deep. The easiest way to understand it is to just play around with it for a bit.
 
 #### Controls Page:
 Used to select model / input data. Visible by default. Provides the following input options:
@@ -53,7 +47,7 @@ modifications:
 ```
 
 #### Visualization Page:
-Used to visualize the results from the model and classifier. Becomes visible when data is loaded from the backend. Has the following UI components:
+Used to visualize the results from the model and classifier. Becomes visible when data is loaded from the backend. Includes the following UI components:
 
 ```
 top-left:     list of input sentences
@@ -65,7 +59,12 @@ middle-right: list of predefined commands (click to invoke)
 bottom-right: list of selected components
 ```
 
+You can navigate through the data-set using the query interface, which accepts a number of variables and commands (described below). The `colorBy` and `colorSort` commands can be used to view activations. You can select / deselect components by clicking on them. 
+
 ### Query Variables and Commands:
+Example variables `results`, `selection`, `value` etc.
+can be replaced with other variables / expressions.
+
 ```
 select(results)
     Select the results of the last query
@@ -166,31 +165,81 @@ wget http://people.csail.mit.edu/averyn/networkVisualization/models/en-es-1.pt -
 python vis-server.py
 ```
 
+### Development Notes:
 
+#### Design Decisions:
+- General Purpose: want the user to be able to sort / filter / manipulate the
+  data arbitratily. Provide the user with a small set of visualizations that work with an arbitrary subset of the data, instead of many visualizations that only work on limited subsets of the data.
+- Flexibility: user should be able to sequence / nest commands arbitratily
+- Color Scheme: any color used in the interface should be associated with some 
+  quantitative or semantic meaning
+- Functional Programming: focus on map / filter / reduce framework for
+  processing data. Internally, use of generators to achieve lazy component
+  loading.
+- Simple Back-End: avoids webpack, react-router, npm, etc. Translates babel
+  in-browser.
 
+#### Issues / Areas for Improvement:
+- translation / classification is slow for medium-to-large number of input sentences. Should try to host back-end on faster server.
+- codebase currently lacking tests
+- currently, performance on chrome is better than firefox
+  (chrome is more aggressive about reclaiming unused memory)
+- set of visualizations could be expanded
+- could try to include attention data in visualizations
+- could allow user to upload new models / token files
+
+#### Project Structure:
 ```
+aux_classifier: 
+    classifier submodule
+    called from getClassifierData.py
 
-developer documentation:
-  issues / improvements
-    slow for large number of sentences
-    no tests
-    limited visualizations
-    work with decode data / attention
-    firefox memory error
-    option to upload text
-    more comments
-    chrome works better than firefox
-  software requirements
-    python3
-    pip
-    anaconda
-  installation instructions
-  project structure
-  design decisions
-    functional programming
-    react / in-browser
-    lazy-loading / generators
-    sqrt curve for colors
+imgsForReadme
 
+modelInputs:
+    directory where token and label files are stored
+           
+opennmt-inspection:
+    translation submodule
+    called from vis-server.py
+
+static:
+    index.html
+    style.css
+    script.js:
+        main js file, contains React UI components
+        handles all back-end communication
+        handles data-processing / logic
+
+    visComponents.js:
+        React components for visualization
+        (neurons, tokens, sentencs, etc.)
+
+    dataFunctions.js:
+        misc data-related functions
+        for sorting, flattening generators, etc.
+
+.gitignore  
+
+.gitmodules 
+
+README.md
+
+cache.json:
+    results from model / classifier are dumped here
+    helpful for front-end dev: can reload data from
+    the back-end without re-running the entire model
+
+conda-environment:
+    list of python dependencies, handled by anaconda
+
+getClassifierData.py:
+    get top-neuron data from model activations
+    called by vis-server.py
+
+vis-server:
+    main file in the back-end, makes flask server that 
+    servers the application.
+    runs the model / classifier, sends data back to the 
+    front / end.          
 ```
-

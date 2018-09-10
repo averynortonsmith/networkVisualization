@@ -141,6 +141,7 @@ class Token extends React.Component {
 
     getColorStyle() {
         let color  = this.props.actVal > 0 ? "rgba(255, 0, 0," : "rgba(0, 0, 255,";
+        // square-root gives better color contrasts
         return {backgroundColor: color + Math.abs(this.props.actVal) ** .5 + ")", marginRight: "0px", borderWidth: "0px"};
     }
 
