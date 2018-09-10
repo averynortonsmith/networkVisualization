@@ -86,7 +86,7 @@ class Container extends React.Component {
         // define "global" variables
         // which are accessed by functions in visComponents.js and dataFunctions.js
         setToggleSelect(this.toggleSelect);
-        sethandleQueryChange(this.handleQueryChange);
+        setHandleQueryChange(this.handleQueryChange);
         setAddMods(function(mods) {
             this.setState({controlValues: {...this.state.controlValues, modifications: mods.join("")}});
         }.bind(this));
@@ -269,11 +269,11 @@ class Container extends React.Component {
             topLabelledNeurons[label] = topNeuronsByCategory[label].map(index => neurons[index]);
         }
 
-        let topNeurons = topNeurons.map(function(index) {
+        topNeurons = topNeurons.map(function(index) {
             return neurons[index];
         });
 
-        selection = topNeurons;
+        let selection = topNeurons;
 
         let tokens = sentences.reduce(function(result, sentence) {
             let tokens = sentence.tokens;
@@ -762,8 +762,11 @@ class SideBar extends React.Component {
                     <div className="builtIn" onClick={() => this.props.onClick("results.getColorers()")}>
                         <samp>results</samp>.getColorers()</div>
 
-                    <div className="builtIn" onClick={() => this.props.onClick("results.colorAverage(selection)")}>
-                        <samp>results</samp>.colorAverage(<i>selection</i>)</div>
+                    { 
+                        // <div className="builtIn" onClick={() => this.props.onClick("results.colorAverage(selection)")}>
+                            // <samp>results</samp>.colorAverage(<i>selection</i>)</div>
+                    }
+
                     <div className="builtIn" onClick={() => this.props.onClick("results.take(n")}>
                         <samp>results</samp>.take(<i>n</i>)</div>
                     <div className="builtIn" onClick={() => this.props.onClick("results.reversed()")}>

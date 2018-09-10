@@ -100,6 +100,14 @@ Object.defineProperty(Object.prototype, "filter", {
     value: func => filter(func, copyDedupe(this))
 });
 
+Object.defineProperty(Object.prototype, "take", {
+    value: n => takeGen(n, copyDedupe(this))
+});
+
+Object.defineProperty(Object.prototype, "reversed", {
+    value: () => Array.from(copyDedupe(this)).reversed()
+});
+
 Object.defineProperty(Object.prototype, "colorSort", {
     // me: hey, javascript, if I accidentally mark a normal function (has a return statement) as a
     //     generator, you'll make sure to throw an error so that I realize my mistake, right?
@@ -116,9 +124,9 @@ Object.defineProperty(Object.prototype, "colorBy", {
     value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource), copyDedupe(this)); }
 });
 
-Object.defineProperty(Object.prototype, "colorAverage", {
-    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), copyDedupe(this)); }
-});
+// Object.defineProperty(Object.prototype, "colorAverage", {
+//     value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), copyDedupe(this)); }
+// });
 
 Object.defineProperty(Object.prototype, "getColorers", {
     value: function*() { yield* flatMap(elem => elem.colorer, this); }
