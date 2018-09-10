@@ -1,7 +1,7 @@
 # networkVisualization
 run seq-to-seq translation experiments, and visualize network activations
 
-![header](imgsForReadme/header.png)
+![demo gif](imgsForReadme/demo.gif)
 
 ### Table of Contents:
 [Application Description](#application-description)  
