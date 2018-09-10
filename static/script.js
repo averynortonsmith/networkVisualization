@@ -1,4 +1,6 @@
 
+// use a closure w/ getters / setters instead of global vars
+// to make dependencies more explicit
 function stateClosure() {
     let state;
 
@@ -11,41 +13,36 @@ function stateClosure() {
     return [getState, setState];
 }
 
-let [getToggleSelect, setToggleSelect] = stateClosure();
-let [getActivations, setActivations] = stateClosure();
-let [getAddMods, setAddMods] = stateClosure();
-let [getHandleBuiltIn, setHandleBuiltIn] = stateClosure();
-
-function select(value) {
-    getToggleSelect()(value, true);
-    return null;
-}
+let [getToggleSelect, setToggleSelect]           = stateClosure();
+let [getActivations, setActivations]             = stateClosure();
+let [getAddMods, setAddMods]                     = stateClosure();
+let [getHandleQueryChange, setHandleQueryChange] = stateClosure();
 
 // --------------------------------------------------------------------------------
 
 class Container extends React.Component {
     constructor(props) {
         super(props);
-        this.handleQueryChange  = this.handleQueryChange.bind(this); // update results for new valid query
-        this.processData        = this.processData.bind(this);       // call when we get new data from backend
-        this.toggleSelect       = this.toggleSelect.bind(this);      // select / deselect data components
-        this.toggleControls     = this.toggleControls.bind(this);    // show / hide the controls page
-        this.handleInputChange  = this.handleInputChange.bind(this); // handle field changes on controls page
-        this.handleResponse     = this.handleResponse.bind(this);    // process response from backend
-        this.setPending         = this.setPending.bind(this);        // are we waiting for response from backend
-        this.setMessage         = this.setMessage.bind(this);        // display error message on controls page
-        this.mapGetComponents   = this.mapGetComponents.bind(this);  // get react components for values in a nested list
-        this.tryGetComponents   = this.tryGetComponents.bind(this);  // get react components to visualize values / list of values
-        this.getSentences       = this.getSentences.bind(this);      // get sentence values from text tokens
-        this.clearSelection     = this.clearSelection.bind(this);    // clear the selection variable, available in console
-        this.loadSelection      = this.loadSelection.bind(this);    
-        this.increaseNumVisible = this.increaseNumVisible.bind(this); 
-        this.getCacheData       = this.getCacheData.bind(this); 
-        this.handleBuiltIn      = this.handleBuiltIn.bind(this); 
-        this.showLabels         = this.showLabels.bind(this); 
+        this.handleQueryChange  = this.handleQueryChange.bind(this);  // update results for new valid query
+        this.processData        = this.processData.bind(this);        // call when we get new data from backend
+        this.toggleSelect       = this.toggleSelect.bind(this);       // select / deselect data components
+        this.toggleControls     = this.toggleControls.bind(this);     // show / hide the controls page
+        this.handleInputChange  = this.handleInputChange.bind(this);  // handle field changes on controls page
+        this.handleResponse     = this.handleResponse.bind(this);     // process response from backend
+        this.setPending         = this.setPending.bind(this);         // are we waiting for response from backend?
+        this.setMessage         = this.setMessage.bind(this);         // display error message on controls page
+        this.mapGetComponents   = this.mapGetComponents.bind(this);   // get react components for values in a nested list
+        this.tryGetComponents   = this.tryGetComponents.bind(this);   // get react components to visualize values / list of values
+        this.getSentences       = this.getSentences.bind(this);       // get sentence values from text tokens
+        this.clearSelection     = this.clearSelection.bind(this);     // clear the selection variable, available in console
+        this.loadSelection      = this.loadSelection.bind(this);      // load selection variable into results variable
+        this.increaseNumVisible = this.increaseNumVisible.bind(this); // increase the number of results listed (for lazy-loading)
+        this.getCacheData       = this.getCacheData.bind(this);       // load cached data from backend, instead of re-running model
+        this.showLabels         = this.showLabels.bind(this);         // get first token for each label
 
         // results:            values returned by a succesfull query
         // renderedComponents: react components representing the result values
+        // numVisible:         how many components are listed (for lazy-loading)
         // selection:          values that have been selected, appear in sidebar
         // selectedComponents: react components representing the selected values
         // query:              query js expression, can access neurons, tokens, sentences, and words
@@ -61,7 +58,9 @@ class Container extends React.Component {
         
         // controlValues:      
         //     modelPath:      for backend, path to model in ../models directory
-        //     inputText:      for backend, text to be translated / processed
+        //     modifications:  list of manually set neuron activations  
+        //     tokensPath:     for backend, path to tokens file in ../modelInput directory
+        //     labelsPath:     for backend, path to labels file in ../modelInput directory
 
         this.state = {
             results: [], 
@@ -83,24 +82,35 @@ class Container extends React.Component {
                 labelsPath: "train.pos",
             },
         };
+
+        // define "global" variables
+        // which are accessed by functions in visComponents.js and dataFunctions.js
         setToggleSelect(this.toggleSelect);
-        setHandleBuiltIn(this.handleBuiltIn);
+        sethandleQueryChange(this.handleQueryChange);
         setAddMods(function(mods) {
             this.setState({controlValues: {...this.state.controlValues, modifications: mods.join("")}});
         }.bind(this));
     }
 
+    // --------------------------------------------------------------------------------
+
     componentDidMount() {
+        // for quick debugging use URL param .../?debug=cache
+        // loads most recent model / classifier data from backend
         if (new URL(document.location).searchParams.get("debug") == "cache") {
             this.setState({showControls: true});
             this.getCacheData();
         }
     }
 
+    // --------------------------------------------------------------------------------
+
     getCacheData() {
         // clear error message from last request, if there was one
-        this.setMessage("");
-        this.setPending(true);
+        // https://developer.mozilla.org/en-US/docs/Learn/HTML/Forms/Sending_forms_through_JavaScript
+
+        this.setMessage("");   // clear pervious error messages
+        this.setPending(true); // waiting on request (for UI)
 
         var request = new XMLHttpRequest();
         var formData = new FormData();
@@ -130,6 +140,8 @@ class Container extends React.Component {
         request.send(formData);
     }
 
+    // --------------------------------------------------------------------------------
+
     // show / hide the controls page
     toggleControls() {
         // don't allow return to visualizations view if we're waiting for server response
@@ -151,13 +163,18 @@ class Container extends React.Component {
         window.history.replaceState({} , "", url.href);
     }
 
+    // --------------------------------------------------------------------------------
+
     // handle field changes on controls page
     handleInputChange(inputName, value) {
         // [inputName] : value -- use string value of inputName as key
         this.setState({controlValues: {...this.state.controlValues, [inputName]: value}});
     }
 
+    // --------------------------------------------------------------------------------
+
     // select / deselect data components
+    // "select()" command sets addOnly=true, since we only want to select, not toggle
     toggleSelect(values, addOnly=false) {
         if (typeof values.copy === "function") {
             values = values.copy();
@@ -168,7 +185,6 @@ class Container extends React.Component {
         this.setState({selection: selection});
         this.setState({selectedComponents: components});
     }
-
 
     processToggle(selection, values, addOnly) {
         values = Array.from(flatten(values));
@@ -197,7 +213,15 @@ class Container extends React.Component {
         return Object.values(outputDict);
     }
 
+    // --------------------------------------------------------------------------------
+
     // call when we get new data from backend
+    // activationsData: activationsData[sentenceIndex][tokenIndex][layerIndex][neuronIndex] = value
+    // textData:        textData[sentenceIndex][wordIndex] = wordString
+    // predData:        predData[sentenceIndex][wordIndex] = wordString
+    // labels:          labels[sentenceIndex][wordIndex] = labelString
+    // topNeurons:      list of top neuron indecies (in flat neurons list)
+    // topNeuronsByCategory: dict of top neuron lists by label, indexed by label string
     processData(activationsData, textData, predData, labels, topNeurons, topNeuronsByCategory){
 
         let text = this.getSentences(textData, labels);
@@ -245,11 +269,11 @@ class Container extends React.Component {
             topLabelledNeurons[label] = topNeuronsByCategory[label].map(index => neurons[index]);
         }
 
-        let selection = topNeurons.map(function(index) {
+        let topNeurons = topNeurons.map(function(index) {
             return neurons[index];
         });
 
-        topNeurons = selection;
+        selection = topNeurons;
 
         let tokens = sentences.reduce(function(result, sentence) {
             let tokens = sentence.tokens;
@@ -292,6 +316,8 @@ class Container extends React.Component {
         this.setState({selectedComponents: components});
     }
 
+    // --------------------------------------------------------------------------------
+
     // get react components for values in a nested list
     * mapGetComponents(values) {
         yield* flatMap(value => this.tryGetComponents(value),  values) 
@@ -308,6 +334,8 @@ class Container extends React.Component {
         let errorMessage = typeof value;
         throw {name: "Cannot Render Type", message: errorMessage};
     }
+
+    // --------------------------------------------------------------------------------
 
     // get sentence values from text
     getSentences(textData, labels) {
@@ -330,11 +358,16 @@ class Container extends React.Component {
         return output;
     }
 
+    // --------------------------------------------------------------------------------
+
+    // load selection variable into results variable
     loadSelection() {
         let selection = this.state.selection;
         this.clearSelection();
         return selection;
     }
+
+    // --------------------------------------------------------------------------------
 
     // clear the selection variable, available in console
     clearSelection() {
@@ -343,6 +376,9 @@ class Container extends React.Component {
         return null;
     }
 
+    // --------------------------------------------------------------------------------
+
+    // increase the number of results listed (for lazy-loading)
     increaseNumVisible() {
         this.setState({numVisible: this.state.numVisible + 50}, function () {
             try {
@@ -356,6 +392,8 @@ class Container extends React.Component {
             }
         });
     }
+
+    // --------------------------------------------------------------------------------
 
     // update results for new valid query
     handleQueryChange(query) {
@@ -415,13 +453,13 @@ class Container extends React.Component {
         }
     }
 
-    handleBuiltIn(command) {
-        this.handleQueryChange(command);
-    }
+    // --------------------------------------------------------------------------------
 
     showLabels() {
         return Object.values(this.state.data.labelledTokens).map(tokens => tokens[0]);
     }
+
+    // --------------------------------------------------------------------------------
 
     // process response from backend
     handleResponse(dataString) {
@@ -433,15 +471,21 @@ class Container extends React.Component {
         this.toggleControls();
     }
 
+    // --------------------------------------------------------------------------------
+
     // are we waiting for response from backend
     setPending(pending) {
         this.setState({controlState: {pending, message: this.state.controlState.message}});
     }
 
+    // --------------------------------------------------------------------------------
+
     // display error message on controls page
     setMessage(message) {
         this.setState({controlState: {message, pending: this.state.controlState.pending}});
     }
+
+    // --------------------------------------------------------------------------------
 
     render() {
         return (
@@ -467,7 +511,7 @@ class Container extends React.Component {
                     <SideBar
                         selectedComponents = {this.state.selectedComponents}
                         toggleControls     = {this.toggleControls} 
-                        onClick            = {this.handleBuiltIn} />
+                        onClick            = {this.handleQueryChange} />
                     <Footer
                         onChange     = {this.handleQueryChange}
                         errorMessage = {this.state.errorMessage}
@@ -555,8 +599,8 @@ class Controls extends React.Component {
         }
 
         // clear error message from last request, if there was one
-        this.props.setMessage("");
-        this.props.setPending(true);
+        this.setMessage("");   // clear pervious error messages
+        this.setPending(true); // waiting on request (for UI)
 
         var request = new XMLHttpRequest();
         var formData = new FormData();

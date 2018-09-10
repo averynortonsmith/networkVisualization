@@ -11,17 +11,17 @@ function ActivationValue(actVal, position) {
 
 function VisComponent() {}
 
-SentenceValue.prototype = Object.create(VisComponent.prototype);
+SentenceValue.prototype             = Object.create(VisComponent.prototype);
 SentenceValue.prototype.constructor = SentenceValue;
 
-TokenValue.prototype = Object.create(VisComponent.prototype);
-TokenValue.prototype.constructor = TokenValue;
+TokenValue.prototype                = Object.create(VisComponent.prototype);
+TokenValue.prototype.constructor    = TokenValue;
 
-WordValue.prototype = Object.create(VisComponent.prototype);
-WordValue.prototype.constructor = WordValue;
+WordValue.prototype                 = Object.create(VisComponent.prototype);
+WordValue.prototype.constructor     = WordValue;
 
-NeuronValue.prototype = Object.create(VisComponent.prototype);
-NeuronValue.prototype.constructor = NeuronValue;
+NeuronValue.prototype               = Object.create(VisComponent.prototype);
+NeuronValue.prototype.constructor   = NeuronValue;
 
 // --------------------------------------------------------------------------------
 
@@ -160,7 +160,7 @@ class Token extends React.Component {
                     <span className="tokenString" onClick={this.props.onClick}>{this.props.word.string}</span>
                     <span className="tokenWord">{this.props.word.getComponents()}</span>
                 </span>
-                <span className="tokenLabel" onClick={() => getHandleBuiltIn()("labelledTokens[\"" + this.props.label + "\"]")}>{this.props.label}</span>
+                <span className="tokenLabel" onClick={() => getHandleQueryChange()("labelledTokens[\"" + this.props.label + "\"]")}>{this.props.label}</span>
             </div>);
     }
 }

@@ -43,8 +43,6 @@ def model():
         sentenceIndex = mod[0]
         modsList[sentenceIndex].append(mod[1:])
 
-    print(modsList)
-
     try:
         rawActivations, text, preds = getData(modelPath, trainTokens, modsList)
 
@@ -65,6 +63,7 @@ def model():
         print(traceback.format_exc())
         return str(err), 500
 
+    # save data to cache (helpful for fast UI debugging)
     with open("cache.json", "w") as file:
         file.write(json.dumps([activations, text, preds, labels, topNeurons, topNeuronsByCategory]))
 
@@ -105,7 +104,7 @@ def flatten(x):
         
 # modelPath: path to model in the ./models directory
 # inputText: string of input text to model
-# !!! currently, input text must already be tokenized with spaces - need to fix
+# currently, input text must already be tokenized with spaces
 def getData(modelPath, inputText, modifications):
     pred, rawActivations = translate(
         model         = modelPath,

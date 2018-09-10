@@ -158,6 +158,11 @@ WordValue.prototype.getString = function() {
     return this.string;
 };
 
+function select(value) {
+    getToggleSelect()(value, true);
+    return null;
+}
+
 function* deduplicate(values) {
     let keySet = new Set([]);
 
