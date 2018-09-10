@@ -108,14 +108,6 @@ Object.defineProperty(Object.prototype, "reversed", {
     value: function(n) { return Array.from(this.clone()).reversed(); }
 });
 
-Object.defineProperty(Object.prototype, "take", {
-    value: n => takeGen(n, copyDedupe(this))
-});
-
-Object.defineProperty(Object.prototype, "reversed", {
-    value: () => Array.from(copyDedupe(this)).reversed()
-});
-
 Object.defineProperty(Object.prototype, "colorSort", {
     // me: hey, javascript, if I accidentally mark a normal function (has a return statement) as a
     //     generator, you'll make sure to throw an error so that I realize my mistake, right?
