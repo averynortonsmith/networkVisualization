@@ -54,6 +54,8 @@ developer documentation:
     limited visualizations
     work with decode data / attention
     firefox memory error
+    option to upload text
+    more comments
   software requirements
     python3
     pip
