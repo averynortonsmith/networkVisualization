@@ -96,14 +96,6 @@ Object.defineProperty(Object.prototype, "map", {
     value: function(func) { return flatMap(func, copyDedupe(this)); }
 });
 
-Object.defineProperty(Object.prototype, "filter", {
-    value: function(func) { return filter(func, copyDedupe(this)); }
-});
-
-Object.defineProperty(Object.prototype, "take", {
-    value: function(n) { return takeGen(n, this.clone()); }
-});
-
 Object.defineProperty(Object.prototype, "reversed", {
     value: function(n) { return Array.from(this.clone()).reversed(); }
 });
