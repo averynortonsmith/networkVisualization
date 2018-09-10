@@ -36,7 +36,6 @@ def topNeurons(
 
     print("Number of train sentences: %d"%(len(train_activations)))
 
-    # if exp_type == 'word'
     train_tokens = data_loader.load_data(train_source, train_labels, train_activations, max_sent_l)
 
     NUM_TOKENS = sum([len(t) for t in train_tokens['target']])
@@ -59,14 +58,8 @@ def topNeurons(
     print("Building model...")
     model = utils.train_logreg_model(X, y, lambda_l1=0.00001, lambda_l2=0.00001, num_epochs=num_epochs, batch_size=batch_size)
 
-    # train_accuracies = utils.evaluate_model(model, X, y, idx2label)
-    # test_accuracies, test_predictions = utils.evaluate_model(model, X_test, y_test, idx2label, return_predictions=True, source_tokens=test_tokens['source'])
-
-    # model, label2idx, idx2label, src2idx, idx2src, train_accuracies, test_accuracies, test_predictions, train_tokens, test_tokens
-
-    # utils.get_top_neurons
-    # def get_top_neurons(model, percentage, class_to_idx):
-
-    # percentage isn't percentage!! must be fraction: 10% -> 0.1
-    topNeurons, topNeuronsByCategory = utils.get_top_neurons(model, .1, label2idx)
+    # fraction of neurons to select as "top" neurons
+    # must be fraction, not percentage
+    fracTopNeurons = 0.1
+    topNeurons, topNeuronsByCategory = utils.get_top_neurons(model, fracTopNeurons, label2idx)
     return topNeurons.tolist(), {key: value.tolist() for (key, value) in topNeuronsByCategory.items()}

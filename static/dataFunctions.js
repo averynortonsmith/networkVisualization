@@ -108,6 +108,14 @@ Object.defineProperty(Object.prototype, "reversed", {
     value: function(n) { return Array.from(this.clone()).reversed(); }
 });
 
+Object.defineProperty(Object.prototype, "take", {
+    value: n => takeGen(n, copyDedupe(this))
+});
+
+Object.defineProperty(Object.prototype, "reversed", {
+    value: () => Array.from(copyDedupe(this)).reversed()
+});
+
 Object.defineProperty(Object.prototype, "colorSort", {
     // me: hey, javascript, if I accidentally mark a normal function (has a return statement) as a
     //     generator, you'll make sure to throw an error so that I realize my mistake, right?
@@ -124,9 +132,9 @@ Object.defineProperty(Object.prototype, "colorBy", {
     value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource), copyDedupe(this)); }
 });
 
-Object.defineProperty(Object.prototype, "colorAverage", {
-    value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), copyDedupe(this)); }
-});
+// Object.defineProperty(Object.prototype, "colorAverage", {
+//     value: function*(colorSource) { yield* flatMap(elem => elem.colorBy(colorSource, true), copyDedupe(this)); }
+// });
 
 Object.defineProperty(Object.prototype, "getColorers", {
     value: function*() { yield* flatMap(elem => elem.colorer, this); }
@@ -167,6 +175,11 @@ TokenValue.prototype.getWord = function() {
 WordValue.prototype.getString = function() {
     return this.string;
 };
+
+function select(value) {
+    getToggleSelect()(value, true);
+    return null;
+}
 
 function* deduplicate(values) {
     let keySet = new Set([]);
