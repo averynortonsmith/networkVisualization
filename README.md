@@ -143,6 +143,7 @@ training tokens: train.tok
 training labels: train.pos
 modifications:   (none)
 ```
+(to be completed, once classifier with more training data is set up)
 
 ### Installation Instructions:
 
