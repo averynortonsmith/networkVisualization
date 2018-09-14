@@ -604,8 +604,8 @@ class Controls extends React.Component {
         }
 
         // clear error message from last request, if there was one
-        this.setMessage("");   // clear pervious error messages
-        this.setPending(true); // waiting on request (for UI)
+        this.props.setMessage("");   // clear pervious error messages
+        this.props.setPending(true); // waiting on request (for UI)
 
         var request = new XMLHttpRequest();
         var formData = new FormData();
