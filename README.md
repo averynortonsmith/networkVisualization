@@ -180,8 +180,10 @@ python vis-server.py
   in-browser.
 
 #### Issues / Areas for Improvement:
-- translation / classification is slow for medium-to-large number of input sentences. Should try to host back-end on faster server.
+- translation / classification is slow for medium-to-large number of input 
+  sentences. Should try to host back-end on faster server.
 - codebase currently lacking tests
+- `.js` code could be refactored / commented more
 - currently, performance on chrome is better than firefox
   (chrome is more aggressive about reclaiming unused memory)
 - set of visualizations could be expanded
