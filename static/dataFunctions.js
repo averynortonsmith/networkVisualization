@@ -93,19 +93,11 @@ Object.defineProperty(Array.prototype, "reversed", {
 // --------------------------------------------------------------------------------
 
 Object.defineProperty(Object.prototype, "map", {
-    value: func => flatMap(func, copyDedupe(this))
-});
-
-Object.defineProperty(Object.prototype, "filter", {
-    value: func => filter(func, copyDedupe(this))
-});
-
-Object.defineProperty(Object.prototype, "take", {
-    value: n => takeGen(n, copyDedupe(this))
+    value: function(func) { return flatMap(func, copyDedupe(this)); }
 });
 
 Object.defineProperty(Object.prototype, "reversed", {
-    value: () => Array.from(copyDedupe(this)).reversed()
+    value: function(n) { return Array.from(this.clone()).reversed(); }
 });
 
 Object.defineProperty(Object.prototype, "colorSort", {
@@ -153,6 +145,8 @@ Object.defineProperty(Object.prototype, "modify", {
         return null;
     }
 });
+
+// --------------------------------------------------------------------------------
 
 SentenceValue.prototype.getTokens = function() {
     return this.tokens;

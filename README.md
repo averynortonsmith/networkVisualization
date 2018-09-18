@@ -143,6 +143,7 @@ training tokens: train.tok
 training labels: train.pos
 modifications:   (none)
 ```
+(to be completed, once classifier with more training data is set up)
 
 ### Installation Instructions:
 
@@ -186,6 +187,8 @@ python vis-server.py
 - `.js` code could be refactored / commented more
 - currently, performance on chrome is better than firefox
   (chrome is more aggressive about reclaiming unused memory)
+- `torch.cuda.is_available()` in `aux_classifier/utiles.py` gives false positives sometimes, leads to CUDA error during 
+  classification
 - set of visualizations could be expanded
 - could try to include attention data in visualizations
 - could allow user to upload new models / token files
