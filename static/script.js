@@ -155,6 +155,7 @@ class Container extends React.Component {
         let url = new URL(document.location);
         if (showControls) {
             url.searchParams.delete("view");
+            url.searchParams.delete("debug");
         }
         else {
             url.searchParams.set("view", "visualization");
