@@ -22,6 +22,8 @@ trained model, and uses a classifier to identify the most salient
 neurons for each label. This data is sent to the front-end, where it
 can be visualized.
 
+#### [publicly hosted demo](http://nanuk.csail.mit.edu:5000/?debug=cache)
+
 ### UI Layout:
 In terms of complexity, the UI is broad, but not deep. The easiest way to understand it is to just play around with it for a bit.
 
