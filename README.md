@@ -143,7 +143,22 @@ training tokens: train.tok
 training labels: train.pos
 modifications:   (none)
 ```
-(to be completed, once classifier with more training data is set up)
+
+First, let's check out which neurons the classifier has identified as being the most influential for tokens with the label `"."` (which is simply all period tokens). Let's select the highest-ranked neuron in this list, the neuron in layer 1, index 97.
+
+![top period neurons](imgsForReadme/example1.png)
+
+Next, let's color our input text with the activations of this neuron. We see that this neuron, as expected, responds strongly to period tokens. Interesingly, this neuron responds to all period characters, not just those at the end of the sentences, and responds negatively (the classifier only takes into account absolute value).
+
+![show period neurons](imgsForReadme/example2.png)
+
+Let's inspect another neuron that responds to period tokens. We select the first period token in the input text, and sort all of the neurons in the network by their activation on this token.
+
+![top token neurons](imgsForReadme/example3.png)
+
+Now, take the most active neuron for this period token, and color the input text with its activations. The results look very different from the previous neuron: this neuron starts off with a negative activation at the beginning of each sentences, and becomes more active as the sentence goes on. It looks like this neuron, rather than responding to a specific set of tokens, is in fact encoding sentence position!
+
+![positional neuron](imgsForReadme/example4.png)
 
 ### Installation Instructions:
 
