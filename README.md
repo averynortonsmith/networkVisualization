@@ -5,7 +5,7 @@ Run seq-to-seq translation experiments, and visualize network activations
 
 ### Table of Contents:
 [Application Description](#application-description)  
-[UI Layout](#ui-Layout)  
+[UI Layout](#ui-layout)  
 [Query Variables and Commands](#query-variables-and-commands)  
 [Example Use-Case](#example-use-case)  
 [Installation Instructions](#installation-instructions)  
